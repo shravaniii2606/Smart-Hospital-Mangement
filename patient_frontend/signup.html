@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="single-wrap">
+    <article class="phone">
+      <div class="body">
+        <div class="app-brand">
+  <div class="app-logo" aria-hidden="true">
+    <span class="plus-v"></span>
+    <span class="plus-h"></span>
+  </div>
+  <div class="app-name">HealthSphere</div>
+  <p class="app-tag">Your Smart Care Companion</p>
+</div>
+
+        <div class="auth-switch" role="tablist" aria-label="Signup type">
+          <button class="auth-tab active" type="button" data-role="patient" role="tab" aria-selected="true">Patient</button>
+          <button class="auth-tab" type="button" data-role="hospital" role="tab" aria-selected="false">Hospital</button>
+        </div>
+
+        <section class="auth-panel" data-role-panel="patient">
+          <h2>Sign Up</h2>
+          <p>Create account</p>
+
+          <form id="signupForm" novalidate>
+            <input class="input" type="text" id="signupName" placeholder="Full Name" required />
+            <select class="input" id="signupGender">
+              <option value="">Gender (Optional)</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+            <input class="input" type="date" id="signupDob" />
+            <input class="input" type="number" id="signupAge" placeholder="Age (Auto calculated)" readonly />
+            <input class="input" type="tel" id="signupPhone" placeholder="Phone (10 digits)" pattern="[0-9]{10}" required />
+            <input class="input" type="email" id="signupEmail" placeholder="Email" required />
+            <input class="input" type="password" id="signupPassword" placeholder="Password (min 6 chars)" minlength="6" required />
+            <select class="input" id="signupBloodGroup">
+              <option value="">Blood Group (Optional)</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+            <input class="input" type="number" id="signupHeight" placeholder="Height (cm)" step="0.1" min="0" />
+            <input class="input" type="number" id="signupWeight" placeholder="Weight (kg)" step="0.1" min="0" />
+
+            <button class="btn" type="submit">Sign Up</button>
+          </form>
+          <p id="signupError" class="auth-error" hidden></p>
+
+          <p class="sub">Already have an account? <a href="login.html?role=patient">Login</a></p>
+        </section>
+
+        <section class="auth-panel" data-role-panel="hospital" hidden>
+          <h2>Hospital Signup</h2>
+          <p>Create a hospital-side account.</p>
+
+          <form id="hospitalSignupForm" novalidate>
+            <input id="hospitalSignupEmail" class="input" type="email" placeholder="Email" required />
+            <input id="hospitalSignupPassword" class="input" type="password" placeholder="Password" required />
+            <button class="btn" type="submit">Create Account</button>
+          </form>
+
+          <p id="hospitalSignupError" class="auth-error" hidden></p>
+          <p class="sub">Already have an account? <a href="login.html?role=hospital">Login</a></p>
+        </section>
+      </div>
+    </article>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
+</body>
+</html>

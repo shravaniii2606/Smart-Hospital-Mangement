@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile - HealthSphere</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="single-wrap">
+    <article class="phone hs-home">
+      <div class="body">
+        <div class="hs-layout">
+          <nav class="hs-sidebar" aria-label="Home sections">
+            <a class="hs-side-link" href="patient_home.html">
+              <span><i class="fa-solid fa-house"></i></span>
+              <small>Home</small>
+            </a>
+            <a class="hs-side-link" href="ai.html">
+              <span><i class="fa-solid fa-robot"></i></span>
+              <small>AI Chatbot</small>
+            </a>
+            <a class="hs-side-link" href="doctors.html">
+              <span><i class="fa-solid fa-user-doctor"></i></span>
+              <small>Find Doctors</small>
+            </a>
+            <a class="hs-side-link" href="bed_availability.html">
+              <span><i class="fa-solid fa-bed"></i></span>
+              <small>Bed Availability</small>
+            </a>
+            <a class="hs-side-link" href="appointments.html">
+              <span><i class="fa-solid fa-calendar-check"></i></span>
+              <small>My Appointments</small>
+            </a>
+            <a class="hs-side-link" href="emergency.html">
+              <span><i class="fa-solid fa-truck-medical"></i></span>
+              <small>Emergency</small>
+            </a>
+            <a class="hs-side-link active" href="profile.html">
+              <span><i class="fa-regular fa-user"></i></span>
+              <small>Profile</small>
+            </a>
+            <a class="hs-side-link" href="reports.html">
+              <span><i class="fa-solid fa-file-medical"></i></span>
+              <small>Reports</small>
+            </a>
+          </nav>
+
+          <section class="hs-main">
+            <div class="hs-brand-row">
+              <div class="hs-brand-logo"><i class="fa-solid fa-heart-pulse"></i></div>
+              <div class="hs-brand-name">HealthSphere</div>
+            </div>
+
+            <header class="hs-greet-row">
+              <div>
+                <p class="hs-hello">Section</p>
+                <h2 class="hs-name">Profile</h2>
+              </div>
+            </header>
+
+            <section class="hs-location-card hs-profile-card">
+              <div class="hs-location-row">
+                <div class="hs-location-icon"><i class="fa-regular fa-user"></i></div>
+                <div>
+                  <h4>Your Details</h4>
+                  <p>Profile information.</p>
+                </div>
+              </div>
+
+              <div class="hs-profile-grid">
+                <div>
+                  <p class="hs-label">Name</p>
+                  <h4 id="profileName">-</h4>
+                </div>
+                <div>
+                  <p class="hs-label">Email</p>
+                  <h4 id="profileEmail">-</h4>
+                </div>
+                <div>
+                  <p class="hs-label">Phone</p>
+                  <h4 id="profilePhone">-</h4>
+                </div>
+                <div>
+                  <p class="hs-label">Gender</p>
+                  <h4 id="profileGender">-</h4>
+                </div>
+                <div>
+                  <p class="hs-label">DOB</p>
+                  <h4 id="profileDob">-</h4>
+                </div>
+                <div>
+                  <p class="hs-label">Age</p>
+                  <h4 id="profileAge">-</h4>
+                </div>
+                <div>
+                  <p class="hs-label">Blood Group</p>
+                  <h4 id="profileBlood">-</h4>
+                </div>
+                <div>
+                  <p class="hs-label">Height</p>
+                  <h4 id="profileHeight">-</h4>
+                </div>
+                <div>
+                  <p class="hs-label">Weight</p>
+                  <h4 id="profileWeight">-</h4>
+                </div>
+              </div>
+
+              <button id="logoutBtn" class="btn btn-danger" type="button">Logout</button>
+              <p id="profileError" class="auth-error" hidden></p>
+            </section>
+          </section>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
+</body>
+</html>

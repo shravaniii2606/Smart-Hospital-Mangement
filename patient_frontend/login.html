@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="single-wrap">
+    <article class="phone">
+      <div class="body">
+        <div class="app-brand">
+  <div class="app-logo" aria-hidden="true">
+    <span class="plus-v"></span>
+    <span class="plus-h"></span>
+  </div>
+  <div class="app-name">HealthSphere</div>
+  <p class="app-tag">Your Smart Care Companion</p>
+</div>
+
+        <div class="auth-switch" role="tablist" aria-label="Login type">
+          <button class="auth-tab active" type="button" data-role="patient" role="tab" aria-selected="true">Patient</button>
+          <button class="auth-tab" type="button" data-role="hospital" role="tab" aria-selected="false">Hospital</button>
+        </div>
+
+        <section class="auth-panel" data-role-panel="patient">
+          <h2>Login</h2>
+          <p>Enter your credentials</p>
+
+          <form id="loginForm" novalidate>
+            <input class="input" type="email" id="loginEmail" placeholder="Email" required />
+            <input class="input" type="password" id="loginPassword" placeholder="Password" required />
+            <button class="btn" type="submit">Login</button>
+          </form>
+          <p id="loginError" class="auth-error" hidden></p>
+
+          <p class="sub">New user? <a href="signup.html?role=patient">Create Account</a></p>
+        </section>
+
+        <section class="auth-panel" data-role-panel="hospital" hidden>
+          <h2>Hospital Login</h2>
+          <p>Use your hospital account credentials.</p>
+
+          <form id="hospitalLoginForm" novalidate>
+            <input id="hospitalLoginEmail" class="input" type="email" placeholder="Email" required />
+            <input id="hospitalLoginPassword" class="input" type="password" placeholder="Password" required />
+            <button class="btn" type="submit">Login</button>
+          </form>
+
+          <p id="hospitalLoginError" class="auth-error" hidden></p>
+          
+        </section>
+      </div>
+    </article>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
+</body>
+</html>

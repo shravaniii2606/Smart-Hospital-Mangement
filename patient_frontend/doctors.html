@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Find Doctors - HealthSphere</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="single-wrap">
+    <article class="phone hs-home">
+      <div class="body">
+        <div class="hs-layout">
+          <nav class="hs-sidebar" aria-label="Home sections">
+            <a class="hs-side-link" href="patient_home.html">
+              <span><i class="fa-solid fa-house"></i></span>
+              <small>Home</small>
+            </a>
+            <a class="hs-side-link" href="ai.html">
+              <span><i class="fa-solid fa-robot"></i></span>
+              <small>AI Chatbot</small>
+            </a>
+            <a class="hs-side-link active" href="doctors.html">
+              <span><i class="fa-solid fa-user-doctor"></i></span>
+              <small>Find Doctors</small>
+            </a>
+            <a class="hs-side-link" href="bed_availability.html">
+              <span><i class="fa-solid fa-bed"></i></span>
+              <small>Bed Availability</small>
+            </a>
+            <a class="hs-side-link" href="appointments.html">
+              <span><i class="fa-solid fa-calendar-check"></i></span>
+              <small>My Appointments</small>
+            </a>
+            <a class="hs-side-link" href="emergency.html">
+              <span><i class="fa-solid fa-truck-medical"></i></span>
+              <small>Emergency</small>
+            </a>
+            <a class="hs-side-link" href="profile.html">
+              <span><i class="fa-regular fa-user"></i></span>
+              <small>Profile</small>
+            </a>
+            <a class="hs-side-link" href="reports.html">
+              <span><i class="fa-solid fa-file-medical"></i></span>
+              <small>Reports</small>
+            </a>
+          </nav>
+
+          <section class="hs-main">
+            <div class="hs-brand-row">
+              <div class="hs-brand-logo"><i class="fa-solid fa-heart-pulse"></i></div>
+              <div class="hs-brand-name">HealthSphere</div>
+            </div>
+
+            <header class="hs-greet-row">
+              <div>
+                <p class="hs-hello">Section</p>
+                <h2 class="hs-name">Find Doctors</h2>
+              </div>
+            </header>
+
+            <section class="hs-location-card">
+              <div class="hs-location-row">
+                <div class="hs-location-icon"><i class="fa-solid fa-user-doctor"></i></div>
+                <div>
+                  <h4>Search Specialists</h4>
+                  <p>Choose how you want to search.</p>
+                </div>
+              </div>
+
+              <div class="hs-toggle" role="tablist" aria-label="Search mode">
+                <button class="hs-toggle-btn active" type="button" data-mode="doctors" role="tab" aria-selected="true">
+                  Doctors
+                </button>
+                <button class="hs-toggle-btn" type="button" data-mode="hospitals" role="tab" aria-selected="false">
+                  Hospitals
+                </button>
+              </div>
+
+              <div class="hs-search-panel" data-panel="doctors">
+                <div class="hs-doctor-search">
+                  <div class="hs-search-input">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input class="input" type="text" placeholder="Search doctor" />
+                  </div>
+
+                  <div class="hs-chip-row" role="group" aria-label="Specializations">
+                    <button class="hs-chip" type="button">Cardio</button>
+                    <button class="hs-chip" type="button">Dentist</button>
+                    <button class="hs-chip" type="button">Ortho</button>
+                    <button class="hs-chip" type="button">Neuro</button>
+                    <button class="hs-chip" type="button">Dermatology</button>
+                    <button class="hs-chip" type="button">Pediatrics</button>
+                  </div>
+
+                  <button class="btn" type="button">Search</button>
+                </div>
+              </div>
+
+              <div class="hs-search-panel" data-panel="hospitals" hidden>
+                <div class="hs-doctor-search">
+                  <div class="hs-search-input">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input class="input" type="text" placeholder="Search hospital name" />
+                  </div>
+                  <input class="input" type="text" placeholder="Location or city" />
+                  <button class="btn" type="button">Search</button>
+                </div>
+              </div>
+            </section>
+          </section>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <script>
+    (function () {
+      var toggleButtons = document.querySelectorAll(".hs-toggle-btn");
+      var panels = document.querySelectorAll(".hs-search-panel");
+
+      function setMode(mode) {
+        toggleButtons.forEach(function (btn) {
+          var isActive = btn.getAttribute("data-mode") === mode;
+          btn.classList.toggle("active", isActive);
+          btn.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+
+        panels.forEach(function (panel) {
+          panel.hidden = panel.getAttribute("data-panel") !== mode;
+        });
+      }
+
+      toggleButtons.forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          setMode(btn.getAttribute("data-mode"));
+        });
+      });
+
+      var chipButtons = document.querySelectorAll(".hs-chip");
+      chipButtons.forEach(function (chip) {
+        chip.addEventListener("click", function () {
+          chipButtons.forEach(function (btn) {
+            btn.classList.remove("active");
+            btn.setAttribute("aria-pressed", "false");
+          });
+          chip.classList.add("active");
+          chip.setAttribute("aria-pressed", "true");
+        });
+      });
+
+      setMode("doctors");
+    })();
+  </script>
+</body>
+</html>
