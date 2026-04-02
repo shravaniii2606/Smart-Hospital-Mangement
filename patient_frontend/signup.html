@@ -3,83 +3,390 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign Up</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Patient Create Account</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --primary: #0b4ea2;
+      --accent: #17a2b8;
+      --text: #14213d;
+      --muted: #5d6f8f;
+      --surface: #ffffff;
+      --surface-soft: #eef4ff;
+      --line: #d9e3f3;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: Poppins, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(23, 162, 184, 0.22), transparent 28%),
+        linear-gradient(135deg, #e7eefb, #f8fbff 56%, #e3f7fb);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .auth-shell {
+      width: min(100%, 1080px);
+      border-radius: 28px;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      background: var(--surface);
+      box-shadow: 0 24px 60px rgba(19, 45, 92, 0.16);
+    }
+
+    .brand-panel {
+      padding: 48px;
+      background: linear-gradient(160deg, #0b4ea2 0%, #0d5fc4 52%, #17a2b8 100%);
+      color: #fff;
+      display: grid;
+      align-content: space-between;
+      gap: 24px;
+    }
+
+    .brand-badge {
+      width: 78px;
+      height: 78px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.16);
+      position: relative;
+      backdrop-filter: blur(3px);
+    }
+
+    .brand-badge::before,
+    .brand-badge::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      border-radius: 999px;
+    }
+
+    .brand-badge::before {
+      width: 16px;
+      height: 42px;
+    }
+
+    .brand-badge::after {
+      width: 42px;
+      height: 16px;
+    }
+
+    .brand-copy h1 {
+      font-size: clamp(34px, 4vw, 48px);
+      line-height: 1.05;
+      margin-top: 18px;
+      margin-bottom: 12px;
+    }
+
+    .brand-copy p,
+    .brand-points li {
+      color: rgba(255, 255, 255, 0.88);
+      line-height: 1.6;
+    }
+
+    .brand-points {
+      list-style: none;
+      display: grid;
+      gap: 14px;
+    }
+
+    .brand-points li {
+      padding: 14px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .form-panel {
+      padding: 40px;
+      display: grid;
+      align-content: start;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .top-note {
+      margin-bottom: 24px;
+    }
+
+    .top-note h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .top-note p {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .auth-switch {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      background: var(--surface-soft);
+      padding: 6px;
+      border-radius: 16px;
+      margin-bottom: 26px;
+    }
+
+    .auth-tab {
+      border: 0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      background: transparent;
+      color: #33415f;
+      transition: 0.2s ease;
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .auth-tab.active {
+      background: #fff;
+      color: var(--primary);
+      box-shadow: 0 10px 18px rgba(11, 78, 162, 0.12);
+    }
+
+    form {
+      display: grid;
+      gap: 14px;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      background: #fff;
+    }
+
+    .input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(11, 78, 162, 0.12);
+    }
+
+    .helper {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 16px;
+      padding: 15px 18px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      cursor: pointer;
+      box-shadow: 0 14px 24px rgba(11, 78, 162, 0.2);
+      margin-top: 4px;
+    }
+
+    .auth-error {
+      min-height: 20px;
+      color: #c52d2d;
+      font-size: 13px;
+    }
+
+    .sub {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .sub a {
+      color: var(--primary);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    @media (max-width: 860px) {
+      .auth-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .brand-panel,
+      .form-panel {
+        padding: 28px;
+      }
+
+      .form-panel {
+        max-height: none;
+        overflow-y: visible;
+      }
+    }
+
+    @media (max-width: 520px) {
+      body {
+        padding: 12px;
+      }
+
+      .brand-panel,
+      .form-panel {
+        padding: 22px;
+      }
+
+      .top-note h2 {
+        font-size: 28px;
+      }
+    }
+  </style>
 </head>
 <body>
-  <main class="single-wrap">
-    <article class="phone">
-      <div class="body">
-        <div class="app-brand">
-  <div class="app-logo" aria-hidden="true">
-    <span class="plus-v"></span>
-    <span class="plus-h"></span>
-  </div>
-  <div class="app-name">HealthSphere</div>
-  <p class="app-tag">Your Smart Care Companion</p>
-</div>
+  <main class="auth-shell">
+    <section class="brand-panel">
+      <div class="brand-copy">
+        <div class="brand-badge" aria-hidden="true"></div>
+        <h1>HealthSphere Patient Console</h1>
+        <p>Create your patient account to manage appointments, reports, and everyday healthcare support in one place.</p>
+      </div>
 
-        <div class="auth-switch" role="tablist" aria-label="Signup type">
-          <button class="auth-tab active" type="button" data-role="patient" role="tab" aria-selected="true">Patient</button>
-          <button class="auth-tab" type="button" data-role="hospital" role="tab" aria-selected="false">Hospital</button>
+      <ul class="brand-points">
+        <li>Keep your profile and health basics ready in one secure account.</li>
+        <li>Use your patient account to book care faster when you need it.</li>
+        <li>Move directly to the patient home page after signup.</li>
+      </ul>
+    </section>
+
+    <section class="form-panel">
+      <div class="top-note">
+        <h2>Create Account</h2>
+        <p>Fill in your patient details to get started.</p>
+      </div>
+
+      <div class="auth-switch" role="tablist" aria-label="Signup type">
+        <a class="auth-tab active" href="signup.html?role=patient" role="tab" aria-selected="true">Patient</a>
+        <a class="auth-tab" href="../hospital_frontend/hospital_login.html" role="tab" aria-selected="false">Hospital</a>
+      </div>
+
+      <form id="signupForm" novalidate>
+        <div class="field">
+          <label for="signupName">Full Name</label>
+          <input class="input" type="text" id="signupName" placeholder="Enter full name" required />
         </div>
 
-        <section class="auth-panel" data-role-panel="patient">
-          <h2>Sign Up</h2>
-          <p>Create account</p>
+        <div class="field">
+          <label for="signupGender">Gender</label>
+          <select class="input" id="signupGender">
+            <option value="">Select gender (optional)</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
 
-          <form id="signupForm" novalidate>
-            <input class="input" type="text" id="signupName" placeholder="Full Name" required />
-            <select class="input" id="signupGender">
-              <option value="">Gender (Optional)</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
-            <input class="input" type="date" id="signupDob" />
-            <input class="input" type="number" id="signupAge" placeholder="Age (Auto calculated)" readonly />
-            <input class="input" type="tel" id="signupPhone" placeholder="Phone (10 digits)" pattern="[0-9]{10}" required />
-            <input class="input" type="email" id="signupEmail" placeholder="Email" required />
-            <input class="input" type="password" id="signupPassword" placeholder="Password (min 6 chars)" minlength="6" required />
-            <select class="input" id="signupBloodGroup">
-              <option value="">Blood Group (Optional)</option>
-              <option value="A+">A+</option>
-              <option value="A-">A-</option>
-              <option value="B+">B+</option>
-              <option value="B-">B-</option>
-              <option value="AB+">AB+</option>
-              <option value="AB-">AB-</option>
-              <option value="O+">O+</option>
-              <option value="O-">O-</option>
-            </select>
-            <input class="input" type="number" id="signupHeight" placeholder="Height (cm)" step="0.1" min="0" />
-            <input class="input" type="number" id="signupWeight" placeholder="Weight (kg)" step="0.1" min="0" />
+        <div class="field">
+          <label for="signupDob">Date Of Birth</label>
+          <input class="input" type="date" id="signupDob" />
+        </div>
 
-            <button class="btn" type="submit">Sign Up</button>
-          </form>
-          <p id="signupError" class="auth-error" hidden></p>
+        <div class="field">
+          <label for="signupAge">Age</label>
+          <input class="input" type="number" id="signupAge" placeholder="Age (auto calculated)" readonly />
+        </div>
 
-          <p class="sub">Already have an account? <a href="login.html?role=patient">Login</a></p>
-        </section>
+        <div class="field">
+          <label for="signupPhone">Phone</label>
+          <input class="input" type="tel" id="signupPhone" placeholder="Enter 10 digit phone number" pattern="[0-9]{10}" required />
+        </div>
 
-        <section class="auth-panel" data-role-panel="hospital" hidden>
-          <h2>Hospital Signup</h2>
-          <p>Create a hospital-side account.</p>
+        <div class="field">
+          <label for="signupEmail">Email</label>
+          <input class="input" type="email" id="signupEmail" placeholder="Enter email" required />
+        </div>
 
-          <form id="hospitalSignupForm" novalidate>
-            <input id="hospitalSignupEmail" class="input" type="email" placeholder="Email" required />
-            <input id="hospitalSignupPassword" class="input" type="password" placeholder="Password" required />
-            <button class="btn" type="submit">Create Account</button>
-          </form>
+        <div class="field">
+          <label for="signupPassword">Password</label>
+          <input class="input" type="password" id="signupPassword" placeholder="Enter password" minlength="6" required />
+        </div>
 
-          <p id="hospitalSignupError" class="auth-error" hidden></p>
-          <p class="sub">Already have an account? <a href="login.html?role=hospital">Login</a></p>
-        </section>
-      </div>
-    </article>
+        <div class="field">
+          <label for="signupBloodGroup">Blood Group</label>
+          <select class="input" id="signupBloodGroup">
+            <option value="">Select blood group (optional)</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="signupHeight">Height</label>
+          <input class="input" type="number" id="signupHeight" placeholder="Enter height in cm" step="0.1" min="0" />
+        </div>
+
+        <div class="field">
+          <label for="signupWeight">Weight</label>
+          <input class="input" type="number" id="signupWeight" placeholder="Enter weight in kg" step="0.1" min="0" />
+        </div>
+
+        <p class="helper">This will create your patient account and redirect you to the patient home page.</p>
+        <p id="signupError" class="auth-error" hidden></p>
+
+        <button class="btn" type="submit">Create Account</button>
+      </form>
+
+      <p class="sub">Already have an account? <a href="login.html?role=patient">Login</a></p>
+    </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
+  <script>
+    document.getElementById("signupDob").addEventListener("change", function () {
+      var dobValue = this.value;
+      var ageInput = document.getElementById("signupAge");
+
+      if (!dobValue) {
+        ageInput.value = "";
+        return;
+      }
+
+      var dob = new Date(dobValue);
+      var today = new Date();
+      var age = today.getFullYear() - dob.getFullYear();
+      var monthDiff = today.getMonth() - dob.getMonth();
+
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+
+      ageInput.value = age >= 0 ? age : "";
+    });
+  </script>
 </body>
 </html>
