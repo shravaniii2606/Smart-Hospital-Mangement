@@ -68,11 +68,185 @@
                   <p>Your appointments will appear here.</p>
                 </div>
               </div>
+              <div class="hs-chip-row" style="margin-top: 10px;">
+                <button class="hs-chip active" type="button" data-filter="all">All</button>
+                <button class="hs-chip" type="button" data-filter="upcoming">Upcoming</button>
+                <button class="hs-chip" type="button" data-filter="previous">Previous</button>
+              </div>
+              <div id="appointmentsList" class="hs-recent-list" style="margin-top: 12px;"></div>
+              <div id="appointmentsEmpty" class="hs-recent-empty" style="display: none;">
+                No appointments found.
+              </div>
             </section>
           </section>
         </div>
       </div>
     </article>
   </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    (function () {
+      const SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
+
+      function getSupabaseClient() {
+        if (typeof supabase === "undefined" || !supabase.createClient) {
+          return null;
+        }
+        return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+
+      const listEl = document.getElementById("appointmentsList");
+      const emptyEl = document.getElementById("appointmentsEmpty");
+      const filterButtons = Array.from(document.querySelectorAll("[data-filter]"));
+      let allAppointments = [];
+      let activeFilter = "all";
+
+      function isUpcoming(appt) {
+        if (!appt.appointment_date) return false;
+        const now = new Date();
+        const datePart = appt.appointment_date;
+        const apptDateOnly = new Date(`${datePart}T00:00:00`);
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+        if (apptDateOnly > today) {
+          return true;
+        }
+        if (apptDateOnly < today) {
+          return false;
+        }
+
+        if (!appt.appointment_time) {
+          return false;
+        }
+
+        const [hours, minutes] = appt.appointment_time.split(":").map(Number);
+        if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+          return false;
+        }
+
+        const apptDateTime = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+          hours,
+          minutes
+        );
+
+        return apptDateTime > now;
+      }
+
+      function getFilteredAppointments(rows) {
+        if (activeFilter === "upcoming") {
+          return rows.filter((appt) => isUpcoming(appt) && appt.status !== "cancelled");
+        }
+        if (activeFilter === "previous") {
+          return rows.filter((appt) => !isUpcoming(appt) || appt.status === "cancelled");
+        }
+        return rows;
+      }
+
+      function renderAppointments(rows) {
+        const filteredRows = getFilteredAppointments(rows);
+        if (!filteredRows || filteredRows.length === 0) {
+          listEl.innerHTML = "";
+          emptyEl.style.display = "block";
+          return;
+        }
+
+        emptyEl.style.display = "none";
+        listEl.innerHTML = filteredRows.map((appt) => {
+          const upcoming = isUpcoming(appt);
+          const isCancelled = appt.status === "cancelled";
+          const badgeClass = isCancelled ? "previous" : (upcoming ? "upcoming" : "previous");
+          const badgeText = isCancelled ? "Cancelled" : (upcoming ? "Upcoming" : "Previous");
+          const cancelButton = upcoming && !isCancelled
+            ? `<button class="btn-mini btn-danger" type="button" data-cancel-id="${appt.id}">Cancel</button>`
+            : "";
+          return `
+            <div class="appt-doc-card">
+              <div class="doc-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+              <div class="doc-content">
+                <div class="appt-head-row">
+                  <h3>${appt.doctor_name || "Doctor"}</h3>
+                  <span class="appt-status-badge ${badgeClass}">${badgeText}</span>
+                </div>
+                <p class="appt-location">${appt.doctor_specialty || "Specialist"}</p>
+                <div class="appt-detail-grid">
+                  <small><strong>Date:</strong> ${appt.appointment_date || "-"}</small>
+                  <small><strong>Time:</strong> ${appt.appointment_time || "-"}</small>
+                  <small><strong>Mode:</strong> ${appt.mode || "-"}</small>
+                  <small><strong>Token:</strong> ${appt.token || "-"}</small>
+                  <small><strong>Status:</strong> ${appt.status || "pending"}</small>
+                </div>
+              </div>
+              ${cancelButton}
+            </div>
+          `;
+        }).join("");
+      }
+
+      async function loadAppointments() {
+        const client = getSupabaseClient();
+        if (!client) {
+          renderAppointments([]);
+          return;
+        }
+
+        const userResult = await client.auth.getUser();
+        if (userResult.error || !userResult.data || !userResult.data.user) {
+          renderAppointments([]);
+          return;
+        }
+
+        const userId = userResult.data.user.id;
+        const { data, error } = await client
+          .from("appointments")
+          .select("*")
+          .eq("user_id", userId)
+          .order("appointment_date", { ascending: true })
+          .order("appointment_time", { ascending: true });
+
+        if (error) {
+          renderAppointments([]);
+          return;
+        }
+
+        allAppointments = data || [];
+        renderAppointments(allAppointments);
+      }
+
+      filterButtons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          filterButtons.forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          activeFilter = btn.dataset.filter || "all";
+          renderAppointments(allAppointments);
+        });
+      });
+
+      listEl.addEventListener("click", async (event) => {
+        const target = event.target.closest("[data-cancel-id]");
+        if (!target) return;
+        const appointmentId = target.getAttribute("data-cancel-id");
+        const client = getSupabaseClient();
+        if (!client || !appointmentId) return;
+
+        const { error } = await client
+          .from("appointments")
+          .update({ status: "cancelled" })
+          .eq("id", appointmentId);
+
+        if (error) {
+          return;
+        }
+
+        await loadAppointments();
+      });
+
+      loadAppointments();
+    })();
+  </script>
 </body>
 </html>

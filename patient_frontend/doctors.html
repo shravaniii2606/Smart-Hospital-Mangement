@@ -74,7 +74,7 @@
                 <input id="doctorSearchInput" class="input" type="text" placeholder="Search doctor by name or specialty" />
               </div>
 
-              <div id="doctorGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;"></div>
+              <div id="doctorGrid" class="hs-doctor-grid"></div>
               
               <div id="noDoctorsMessage" style="text-align: center; padding: 20px; color: #666; display: none;">
                 No doctors available or no matches found.
@@ -84,6 +84,32 @@
                 Loading doctors...
               </div>
             </section>
+
+            <div id="doctorModal" class="hs-modal" aria-hidden="true" role="dialog" aria-modal="true">
+              <div class="hs-modal-card" role="document">
+                <button class="hs-modal-close" type="button" aria-label="Close doctor details">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div class="hs-modal-head">
+                  <div class="hs-modal-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+                  <div>
+                    <h3 id="doctorModalName">Doctor Name</h3>
+                    <p id="doctorModalSpecialty">Specialty</p>
+                  </div>
+                </div>
+                <div class="hs-modal-grid">
+                  <div><i class="fa-regular fa-clock"></i><span id="doctorModalExperience"></span></div>
+                  <div><i class="fa-solid fa-calendar-day"></i><span id="doctorModalAvailability"></span></div>
+                  <div><i class="fa-solid fa-phone"></i><span id="doctorModalPhone"></span></div>
+                  <div><i class="fa-solid fa-envelope"></i><span id="doctorModalEmail"></span></div>
+                </div>
+                <p id="doctorModalBio" class="hs-modal-bio"></p>
+                <div class="hs-modal-actions">
+                  <a id="bookAppointmentBtn" class="btn btn-primary" href="book_appointment.html">Book Appointment</a>
+                  <button id="closeDoctorModalBtn" class="btn btn-secondary" type="button">Close</button>
+                </div>
+              </div>
+            </div>
           </section>
         </div>
       </div>
@@ -98,6 +124,7 @@
       const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
 
       let allDoctors = [];
+      let doctorIndexMap = new Map();
 
       function getSupabaseClient() {
         if (typeof supabase === "undefined" || !supabase.createClient) {
@@ -127,7 +154,11 @@
             return;
           }
 
-          allDoctors = data || [];
+          allDoctors = (data || []).map((doctor, index) => ({
+            ...doctor,
+            __index: index
+          }));
+          doctorIndexMap = new Map(allDoctors.map((doctor) => [String(doctor.__index), doctor]));
           renderDoctors(allDoctors);
         } catch (error) {
           console.error('Error:', error);
@@ -150,25 +181,56 @@
 
         noDoctorsMessage.style.display = "none";
         doctorGrid.innerHTML = doctors.map((doctor) => `
-          <div style="border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px; background: linear-gradient(180deg, #fff, #f6faff); box-shadow: 0 2px 8px rgba(0,0,0,.08);">
-            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-              <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, rgba(11,78,162,.12), rgba(23,162,184,.18)); color: #0b4ea2; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+          <article class="hs-doctor-card" role="button" tabindex="0" data-index="${doctor.__index}">
+            <div class="hs-doctor-head">
+              <div class="hs-doctor-icon">
                 <i class="fa-solid fa-user-doctor"></i>
               </div>
               <div>
-                <h3 style="margin: 0; font-size: 18px; color: #17233d;">${doctor.name}</h3>
-                <p style="margin: 0; color: #5d6f8f; font-size: 14px; font-weight: 600;">${doctor.specialty}</p>
+                <h3>${doctor.name || "Doctor"}</h3>
+                <p>${doctor.specialty || "Specialist"}</p>
               </div>
             </div>
-            <div style="display: grid; gap: 6px; font-size: 13px; color: #384b72; margin-bottom: 12px;">
-              <span><i class="fa-regular fa-clock" style="width: 14px;"></i> ${doctor.experience}</span>
-              <span><i class="fa-solid fa-calendar-day" style="width: 14px;"></i> ${doctor.availability}</span>
-              <span><i class="fa-solid fa-phone" style="width: 14px;"></i> ${doctor.phone}</span>
-              <span><i class="fa-solid fa-envelope" style="width: 14px;"></i> ${doctor.email}</span>
+            <div class="hs-doctor-meta">
+              <span><i class="fa-regular fa-clock"></i> ${doctor.experience || "Experience not listed"}</span>
+              <span><i class="fa-solid fa-calendar-day"></i> ${doctor.availability || "Availability not listed"}</span>
+              <span><i class="fa-solid fa-phone"></i> ${doctor.phone || "Phone not listed"}</span>
+              <span><i class="fa-solid fa-envelope"></i> ${doctor.email || "Email not listed"}</span>
             </div>
-            <p style="margin: 0; font-size: 13px; color: #5d6f8f; line-height: 1.5;">${doctor.bio}</p>
-          </div>
+            <p class="hs-doctor-bio">${doctor.bio || "Tap to view full profile and booking options."}</p>
+          </article>
         `).join("");
+      }
+
+      function openDoctorModal(doctor) {
+        const modal = document.getElementById("doctorModal");
+        if (!doctor || !modal) {
+          return;
+        }
+
+        document.getElementById("doctorModalName").textContent = doctor.name || "Doctor";
+        document.getElementById("doctorModalSpecialty").textContent = doctor.specialty || "Specialist";
+        document.getElementById("doctorModalExperience").textContent = doctor.experience || "Experience not listed";
+        document.getElementById("doctorModalAvailability").textContent = doctor.availability || "Availability not listed";
+        document.getElementById("doctorModalPhone").textContent = doctor.phone || "Phone not listed";
+        document.getElementById("doctorModalEmail").textContent = doctor.email || "Email not listed";
+        document.getElementById("doctorModalBio").textContent = doctor.bio || "No additional bio provided yet.";
+
+        try {
+          sessionStorage.setItem("selectedDoctor", JSON.stringify(doctor));
+        } catch (error) {
+          console.warn("Could not store selected doctor:", error);
+        }
+
+        modal.classList.add("show");
+        modal.setAttribute("aria-hidden", "false");
+      }
+
+      function closeDoctorModal() {
+        const modal = document.getElementById("doctorModal");
+        if (!modal) return;
+        modal.classList.remove("show");
+        modal.setAttribute("aria-hidden", "true");
       }
 
       function filterDoctors() {
@@ -195,6 +257,41 @@
 
       // Add search functionality
       document.getElementById("doctorSearchInput").addEventListener("input", filterDoctors);
+
+      // Card click handling
+      const doctorGrid = document.getElementById("doctorGrid");
+      doctorGrid.addEventListener("click", (event) => {
+        const card = event.target.closest(".hs-doctor-card");
+        if (!card) return;
+        const doctor = doctorIndexMap.get(card.dataset.index);
+        openDoctorModal(doctor);
+      });
+
+      doctorGrid.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        const card = event.target.closest(".hs-doctor-card");
+        if (!card) return;
+        event.preventDefault();
+        const doctor = doctorIndexMap.get(card.dataset.index);
+        openDoctorModal(doctor);
+      });
+
+      // Modal close controls
+      const doctorModal = document.getElementById("doctorModal");
+      doctorModal.addEventListener("click", (event) => {
+        if (event.target === doctorModal) {
+          closeDoctorModal();
+        }
+      });
+
+      document.querySelector(".hs-modal-close").addEventListener("click", closeDoctorModal);
+      document.getElementById("closeDoctorModalBtn").addEventListener("click", closeDoctorModal);
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          closeDoctorModal();
+        }
+      });
     })();
   </script>
 </body>

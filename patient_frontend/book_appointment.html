@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book Appointment - HealthSphere</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="single-wrap">
+    <article class="phone hs-home">
+      <div class="body">
+        <div class="hs-layout">
+          <nav class="hs-sidebar" aria-label="Home sections">
+            <a class="hs-side-link" href="patient_home.html">
+              <span><i class="fa-solid fa-house"></i></span>
+              <small>Home</small>
+            </a>
+            <a class="hs-side-link" href="ai.html">
+              <span><i class="fa-solid fa-robot"></i></span>
+              <small>AI Chatbot</small>
+            </a>
+            <a class="hs-side-link active" href="doctors.html">
+              <span><i class="fa-solid fa-user-doctor"></i></span>
+              <small>Find Doctors</small>
+            </a>
+            <a class="hs-side-link" href="bed_availability.html">
+              <span><i class="fa-solid fa-bed"></i></span>
+              <small>Bed Availability</small>
+            </a>
+            <a class="hs-side-link" href="appointments.html">
+              <span><i class="fa-solid fa-calendar-check"></i></span>
+              <small>My Appointments</small>
+            </a>
+            <a class="hs-side-link" href="emergency.html">
+              <span><i class="fa-solid fa-truck-medical"></i></span>
+              <small>Emergency</small>
+            </a>
+            <a class="hs-side-link" href="profile.html">
+              <span><i class="fa-regular fa-user"></i></span>
+              <small>Profile</small>
+            </a>
+            <a class="hs-side-link" href="reports.html">
+              <span><i class="fa-solid fa-file-medical"></i></span>
+              <small>Reports</small>
+            </a>
+          </nav>
+
+          <section class="hs-main">
+            <div class="hs-brand-row">
+              <div class="hs-brand-logo"><i class="fa-solid fa-heart-pulse"></i></div>
+              <div class="hs-brand-name">HealthSphere</div>
+            </div>
+
+            <header class="hs-greet-row">
+              <div>
+                <p class="hs-hello">Section</p>
+                <h2 class="hs-name">Book Appointment</h2>
+              </div>
+            </header>
+
+            <section class="hs-location-card">
+              <div class="hs-location-row">
+                <div class="hs-location-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div>
+                  <h4>Appointment Details</h4>
+                  <p>Confirm the doctor and provide your visit information.</p>
+                </div>
+              </div>
+
+              <div id="selectedDoctorCard" class="appt-detail-card">
+                <h3>Selected Doctor</h3>
+                <p class="appt-no-strong"><strong id="selectedDoctorName">Not selected</strong></p>
+                <p id="selectedDoctorMeta">Choose a doctor from the Find Doctors page.</p>
+              </div>
+
+              <form id="appointmentForm" class="hs-search-panel">
+                <p id="apptError" class="auth-error" hidden></p>
+                <label class="hs-label" for="apptDate">Preferred Date</label>
+                <input id="apptDate" class="input" type="date" required />
+
+                <label class="hs-label" for="apptTime">Preferred Time</label>
+                <input id="apptTime" class="input" type="time" required />
+                <small id="apptTimeHint" class="doc-sub">Select a time within the doctor's availability.</small>
+
+                <label class="hs-label" for="apptReason">Reason for Visit</label>
+                <textarea id="apptReason" class="hs-ai-text" rows="3" placeholder="Briefly describe your concern" required></textarea>
+
+                <label class="hs-label" for="apptMode">Consultation Mode</label>
+                <select id="apptMode" class="doc-search-type" required>
+                  <option value="" disabled selected>Select mode</option>
+                  <option value="In-person">In-person</option>
+                  <option value="Video">Video</option>
+                  <option value="Phone">Phone</option>
+                </select>
+
+                <label class="hs-label" for="apptNotes">Additional Notes (optional)</label>
+                <textarea id="apptNotes" class="hs-ai-text" rows="2" placeholder="Anything the doctor should know?"></textarea>
+
+                <button class="btn btn-primary" type="submit">Confirm Appointment</button>
+              </form>
+            </section>
+          </section>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <div id="apptSuccess" class="appt-success-box" hidden>
+    <div class="appt-success-card">
+      <i class="fa-solid fa-circle-check"></i>
+      <p>Appointment Confirmed</p>
+      <small>Your request has been saved.</small>
+      <div class="rating-chip" style="justify-content: center; margin-top: 8px;">
+        <i class="fa-solid fa-ticket"></i>
+        Token <span id="apptToken">00</span>
+      </div>
+      <button id="apptOkBtn" class="btn btn-primary" type="button" style="margin-top: 12px;">
+        OK
+      </button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    (function () {
+      const SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
+
+      function getSupabaseClient() {
+        if (typeof supabase === "undefined" || !supabase.createClient) {
+          return null;
+        }
+        return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+
+      const selectedDoctorCard = document.getElementById("selectedDoctorCard");
+      const nameEl = document.getElementById("selectedDoctorName");
+      const metaEl = document.getElementById("selectedDoctorMeta");
+      const errorEl = document.getElementById("apptError");
+
+      let selectedDoctor = null;
+
+      try {
+        const stored = sessionStorage.getItem("selectedDoctor");
+        if (stored) {
+          selectedDoctor = JSON.parse(stored);
+        }
+      } catch (error) {
+        console.warn("Unable to read selected doctor", error);
+      }
+
+      if (selectedDoctor) {
+        nameEl.textContent = selectedDoctor.name || "Doctor";
+        const metaParts = [
+          selectedDoctor.specialty,
+          selectedDoctor.experience,
+          selectedDoctor.availability
+        ].filter(Boolean);
+        metaEl.textContent = metaParts.join(" • ") || "Details not available";
+      } else {
+        selectedDoctorCard.style.borderStyle = "dashed";
+      }
+
+      const form = document.getElementById("appointmentForm");
+      const successBox = document.getElementById("apptSuccess");
+      const dateInput = document.getElementById("apptDate");
+      const timeInput = document.getElementById("apptTime");
+      const tokenEl = document.getElementById("apptToken");
+      const timeHint = document.getElementById("apptTimeHint");
+      const okBtn = document.getElementById("apptOkBtn");
+      const supabaseClient = getSupabaseClient();
+
+      function pad2(value) {
+        return String(value).padStart(2, "0");
+      }
+
+      function toLocalDateString(date) {
+        return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+      }
+
+      function parseTimeToMinutes(value) {
+        if (!value) return null;
+        const cleaned = value.trim().toLowerCase();
+        const match = cleaned.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+        if (!match) return null;
+        let hours = Number(match[1]);
+        const minutes = Number(match[2] || "0");
+        const suffix = match[3];
+
+        if (Number.isNaN(hours) || Number.isNaN(minutes)) return null;
+
+        if (suffix) {
+          if (suffix === "pm" && hours < 12) hours += 12;
+          if (suffix === "am" && hours === 12) hours = 0;
+        }
+
+        if (hours > 23 || minutes > 59) return null;
+        return hours * 60 + minutes;
+      }
+
+      function parseAvailabilityRange(value) {
+        if (!value) return null;
+        const cleaned = value.replace(/\s+/g, " ").trim();
+        const parts = cleaned.split(/-|to/i);
+        if (parts.length < 2) return null;
+        const start = parseTimeToMinutes(parts[0]);
+        const end = parseTimeToMinutes(parts[1]);
+        if (start === null || end === null) return null;
+        return { start, end };
+      }
+
+      function minutesToTimeValue(minutes) {
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        return `${pad2(hours)}:${pad2(mins)}`;
+      }
+
+      function setDateMinToday() {
+        const today = new Date();
+        dateInput.min = toLocalDateString(today);
+      }
+
+      function applyAvailabilityRange(range) {
+        if (!range) {
+          timeInput.removeAttribute("min");
+          timeInput.removeAttribute("max");
+          timeHint.textContent = "Select a time within the doctor's availability.";
+          return;
+        }
+        timeInput.min = minutesToTimeValue(range.start);
+        timeInput.max = minutesToTimeValue(range.end);
+        timeHint.textContent = `Available between ${timeInput.min} and ${timeInput.max}.`;
+      }
+
+      setDateMinToday();
+
+      const availabilityRange = selectedDoctor
+        ? parseAvailabilityRange(selectedDoctor.availability)
+        : null;
+      applyAvailabilityRange(availabilityRange);
+
+      function showError(message) {
+        if (!errorEl) return;
+        errorEl.textContent = message;
+        errorEl.hidden = !message;
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        showError("");
+
+        const today = new Date();
+        const selectedDate = dateInput.value ? new Date(`${dateInput.value}T00:00:00`) : null;
+        if (!selectedDate || selectedDate < new Date(toLocalDateString(today) + "T00:00:00")) {
+          showError("Please choose a valid date that is today or later.");
+          dateInput.focus();
+          return;
+        }
+
+        if (availabilityRange && timeInput.value) {
+          const selectedMinutes = parseTimeToMinutes(timeInput.value);
+          if (selectedMinutes === null ||
+              selectedMinutes < availabilityRange.start ||
+              selectedMinutes > availabilityRange.end) {
+            showError("Please select a time within the doctor's available hours.");
+            timeInput.focus();
+            return;
+          }
+        }
+
+        if (!selectedDoctor || !selectedDoctor.doc_id) {
+          showError("Please select a doctor from the Find Doctors page.");
+          return;
+        }
+
+        if (!supabaseClient) {
+          showError("Supabase client not loaded. Check the script tag.");
+          return;
+        }
+
+        const userResult = await supabaseClient.auth.getUser();
+        if (userResult.error || !userResult.data || !userResult.data.user) {
+          showError("Please log in to book an appointment.");
+          return;
+        }
+
+        const user = userResult.data.user;
+        const userId = user.id;
+        let profileResult = await supabaseClient
+          .from("patient_profile")
+          .select("user_id")
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (profileResult.error) {
+          showError(profileResult.error.message || "Unable to read your patient profile.");
+          return;
+        }
+
+        if (!profileResult.data) {
+          showError("Please complete your profile before booking an appointment.");
+          return;
+        }
+
+        const token = pad2(Math.floor(Math.random() * 90) + 10);
+        tokenEl.textContent = token;
+
+        const payload = {
+          user_id: profileResult.data.user_id,
+          doctor_id: selectedDoctor.doc_id,
+          doctor_name: selectedDoctor.name || null,
+          doctor_specialty: selectedDoctor.specialty || null,
+          appointment_date: dateInput.value,
+          appointment_time: timeInput.value,
+          reason: document.getElementById("apptReason").value.trim(),
+          mode: document.getElementById("apptMode").value,
+          notes: document.getElementById("apptNotes").value.trim() || null,
+          token: token,
+          status: "pending"
+        };
+
+        const insertResult = await supabaseClient
+          .from("appointments")
+          .insert(payload);
+
+        if (insertResult.error) {
+          showError(insertResult.error.message || "Unable to save appointment.");
+          return;
+        }
+
+        successBox.hidden = false;
+        form.reset();
+      });
+
+      okBtn.addEventListener("click", () => {
+        window.location.href = "appointments.html";
+      });
+    })();
+  </script>
+</body>
+</html>
