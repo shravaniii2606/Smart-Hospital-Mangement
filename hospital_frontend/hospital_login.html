@@ -304,8 +304,8 @@
       var password = document.getElementById("hospitalPassword").value.trim();
       var error = document.getElementById("loginError");
 
-      if (!hospitalId || !password) {
-        error.textContent = "Please enter both hospital ID and password.";
+      if (hospitalId !== "Hospital@234" || password !== "123456") {
+        error.textContent = "Invalid hospital ID or password.";
         return;
       }
 

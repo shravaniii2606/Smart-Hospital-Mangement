@@ -64,49 +64,24 @@
               <div class="hs-location-row">
                 <div class="hs-location-icon"><i class="fa-solid fa-user-doctor"></i></div>
                 <div>
-                  <h4>Search Specialists</h4>
-                  <p>Choose how you want to search.</p>
+                  <h4>Available Doctors</h4>
+                  <p>Browse and select doctors for appointments.</p>
                 </div>
               </div>
 
-              <div class="hs-toggle" role="tablist" aria-label="Search mode">
-                <button class="hs-toggle-btn active" type="button" data-mode="doctors" role="tab" aria-selected="true">
-                  Doctors
-                </button>
-                <button class="hs-toggle-btn" type="button" data-mode="hospitals" role="tab" aria-selected="false">
-                  Hospitals
-                </button>
+              <div class="hs-search-input" style="margin-bottom: 20px;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="doctorSearchInput" class="input" type="text" placeholder="Search doctor by name or specialty" />
               </div>
 
-              <div class="hs-search-panel" data-panel="doctors">
-                <div class="hs-doctor-search">
-                  <div class="hs-search-input">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input class="input" type="text" placeholder="Search doctor" />
-                  </div>
-
-                  <div class="hs-chip-row" role="group" aria-label="Specializations">
-                    <button class="hs-chip" type="button">Cardio</button>
-                    <button class="hs-chip" type="button">Dentist</button>
-                    <button class="hs-chip" type="button">Ortho</button>
-                    <button class="hs-chip" type="button">Neuro</button>
-                    <button class="hs-chip" type="button">Dermatology</button>
-                    <button class="hs-chip" type="button">Pediatrics</button>
-                  </div>
-
-                  <button class="btn" type="button">Search</button>
-                </div>
+              <div id="doctorGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom: 20px;"></div>
+              
+              <div id="noDoctorsMessage" style="text-align: center; padding: 20px; color: #666; display: none;">
+                No doctors available or no matches found.
               </div>
 
-              <div class="hs-search-panel" data-panel="hospitals" hidden>
-                <div class="hs-doctor-search">
-                  <div class="hs-search-input">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input class="input" type="text" placeholder="Search hospital name" />
-                  </div>
-                  <input class="input" type="text" placeholder="Location or city" />
-                  <button class="btn" type="button">Search</button>
-                </div>
+              <div id="loadingMessage" style="text-align: center; padding: 20px; color: #666;">
+                Loading doctors...
               </div>
             </section>
           </section>
@@ -115,42 +90,111 @@
     </article>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="script.js"></script>
   <script>
     (function () {
-      var toggleButtons = document.querySelectorAll(".hs-toggle-btn");
-      var panels = document.querySelectorAll(".hs-search-panel");
+      const SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
 
-      function setMode(mode) {
-        toggleButtons.forEach(function (btn) {
-          var isActive = btn.getAttribute("data-mode") === mode;
-          btn.classList.toggle("active", isActive);
-          btn.setAttribute("aria-selected", isActive ? "true" : "false");
-        });
+      let allDoctors = [];
 
-        panels.forEach(function (panel) {
-          panel.hidden = panel.getAttribute("data-panel") !== mode;
-        });
+      function getSupabaseClient() {
+        if (typeof supabase === "undefined" || !supabase.createClient) {
+          console.error("Supabase library not loaded");
+          return null;
+        }
+        return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
 
-      toggleButtons.forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          setMode(btn.getAttribute("data-mode"));
-        });
-      });
+      async function loadDoctors() {
+        const supabaseClient = getSupabaseClient();
+        if (!supabaseClient) {
+          console.error("Cannot load doctors: Supabase not available");
+          document.getElementById("loadingMessage").textContent = "Error loading doctors";
+          return;
+        }
 
-      var chipButtons = document.querySelectorAll(".hs-chip");
-      chipButtons.forEach(function (chip) {
-        chip.addEventListener("click", function () {
-          chipButtons.forEach(function (btn) {
-            btn.classList.remove("active");
-            btn.setAttribute("aria-pressed", "false");
-          });
-          chip.classList.add("active");
-          chip.setAttribute("aria-pressed", "true");
-        });
-      });
+        try {
+          const { data, error } = await supabaseClient
+            .from('doctor_profile')
+            .select('*')
+            .order('name', { ascending: true });
 
-      setMode("doctors");
+          if (error) {
+            console.error('Error loading doctors:', error);
+            document.getElementById("loadingMessage").textContent = "Error loading doctors";
+            return;
+          }
+
+          allDoctors = data || [];
+          renderDoctors(allDoctors);
+        } catch (error) {
+          console.error('Error:', error);
+          document.getElementById("loadingMessage").textContent = "Error loading doctors";
+        }
+      }
+
+      function renderDoctors(doctors) {
+        const doctorGrid = document.getElementById("doctorGrid");
+        const loadingMessage = document.getElementById("loadingMessage");
+        const noDoctorsMessage = document.getElementById("noDoctorsMessage");
+
+        loadingMessage.style.display = "none";
+
+        if (!doctors || doctors.length === 0) {
+          doctorGrid.innerHTML = "";
+          noDoctorsMessage.style.display = "block";
+          return;
+        }
+
+        noDoctorsMessage.style.display = "none";
+        doctorGrid.innerHTML = doctors.map((doctor) => `
+          <div style="border: 1px solid #e0e0e0; border-radius: 12px; padding: 16px; background: linear-gradient(180deg, #fff, #f6faff); box-shadow: 0 2px 8px rgba(0,0,0,.08);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+              <div style="width: 48px; height: 48px; border-radius: 12px; background: linear-gradient(135deg, rgba(11,78,162,.12), rgba(23,162,184,.18)); color: #0b4ea2; display: flex; align-items: center; justify-content: center; font-size: 24px;">
+                <i class="fa-solid fa-user-doctor"></i>
+              </div>
+              <div>
+                <h3 style="margin: 0; font-size: 18px; color: #17233d;">${doctor.name}</h3>
+                <p style="margin: 0; color: #5d6f8f; font-size: 14px; font-weight: 600;">${doctor.specialty}</p>
+              </div>
+            </div>
+            <div style="display: grid; gap: 6px; font-size: 13px; color: #384b72; margin-bottom: 12px;">
+              <span><i class="fa-regular fa-clock" style="width: 14px;"></i> ${doctor.experience}</span>
+              <span><i class="fa-solid fa-calendar-day" style="width: 14px;"></i> ${doctor.availability}</span>
+              <span><i class="fa-solid fa-phone" style="width: 14px;"></i> ${doctor.phone}</span>
+              <span><i class="fa-solid fa-envelope" style="width: 14px;"></i> ${doctor.email}</span>
+            </div>
+            <p style="margin: 0; font-size: 13px; color: #5d6f8f; line-height: 1.5;">${doctor.bio}</p>
+          </div>
+        `).join("");
+      }
+
+      function filterDoctors() {
+        const searchValue = document.getElementById("doctorSearchInput").value.toLowerCase();
+        
+        if (!searchValue) {
+          renderDoctors(allDoctors);
+          return;
+        }
+
+        const filtered = allDoctors.filter((doctor) => {
+          return (
+            doctor.name.toLowerCase().includes(searchValue) ||
+            doctor.specialty.toLowerCase().includes(searchValue) ||
+            doctor.email.toLowerCase().includes(searchValue)
+          );
+        });
+
+        renderDoctors(filtered);
+      }
+
+      // Load doctors on page load
+      loadDoctors();
+
+      // Add search functionality
+      document.getElementById("doctorSearchInput").addEventListener("input", filterDoctors);
     })();
   </script>
 </body>

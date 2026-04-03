@@ -86,38 +86,49 @@
       </section>
     </section>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="hospital_doctors.js"></script>
   <script>
     const query = new URLSearchParams(window.location.search);
     const doctorId = query.get("id");
-    const existingDoctor = doctorId ? getDoctorById(doctorId) : null;
+    const existingDoctor = doctorId ? null : null; // will load async
     const pageTitle = document.getElementById("pageTitle");
     const pageSubtitle = document.getElementById("pageSubtitle");
     const submitLabel = document.getElementById("submitLabel");
     const formError = document.getElementById("formError");
 
-    if (doctorId && !existingDoctor) {
-      window.location.href = "hospital_doctors.html";
+    async function loadForm() {
+      if (doctorId) {
+        try {
+          const doctor = await getDoctorById(doctorId);
+          if (!doctor) {
+            window.location.href = "hospital_doctors.html";
+            return;
+          }
+          pageTitle.textContent = "Edit Doctor Details";
+          pageSubtitle.textContent = "Update the doctor information below and save the changes.";
+          submitLabel.textContent = "Update Doctor";
+          document.getElementById("doctorName").value = doctor.name;
+          document.getElementById("doctorSpecialty").value = doctor.specialty;
+          document.getElementById("doctorExperience").value = doctor.experience;
+          document.getElementById("doctorAvailability").value = doctor.availability;
+          document.getElementById("doctorEmail").value = doctor.email;
+          document.getElementById("doctorPhone").value = doctor.phone;
+          document.getElementById("doctorBio").value = doctor.bio;
+        } catch (error) {
+          console.error('Error loading doctor:', error);
+          window.location.href = "hospital_doctors.html";
+        }
+      }
     }
 
-    if (existingDoctor) {
-      pageTitle.textContent = "Edit Doctor Details";
-      pageSubtitle.textContent = "Update the doctor information below and save the changes.";
-      submitLabel.textContent = "Update Doctor";
-      document.getElementById("doctorName").value = existingDoctor.name;
-      document.getElementById("doctorSpecialty").value = existingDoctor.specialty;
-      document.getElementById("doctorExperience").value = existingDoctor.experience;
-      document.getElementById("doctorAvailability").value = existingDoctor.availability;
-      document.getElementById("doctorEmail").value = existingDoctor.email;
-      document.getElementById("doctorPhone").value = existingDoctor.phone;
-      document.getElementById("doctorBio").value = existingDoctor.bio;
-    }
+    loadForm();
 
-    document.getElementById("doctorForm").addEventListener("submit", function (event) {
+    document.getElementById("doctorForm").addEventListener("submit", async function (event) {
       event.preventDefault();
 
       const doctor = {
-        id: existingDoctor ? existingDoctor.id : generateDoctorId(),
+        id: doctorId || generateDoctorId(),
         name: document.getElementById("doctorName").value.trim(),
         specialty: document.getElementById("doctorSpecialty").value.trim(),
         experience: document.getElementById("doctorExperience").value.trim(),
@@ -132,8 +143,13 @@
         return;
       }
 
-      upsertDoctor(doctor);
-      window.location.href = "hospital_doctors.html";
+      try {
+        await upsertDoctor(doctor);
+        window.location.href = "hospital_doctors.html";
+      } catch (error) {
+        console.error('Error saving doctor:', error);
+        formError.textContent = "Error saving doctor. Please try again.";
+      }
     });
   </script>
 </body>
