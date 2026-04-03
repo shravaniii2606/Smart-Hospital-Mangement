@@ -71,30 +71,42 @@
       </section>
     </section>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="hospital_doctors.js"></script>
   <script>
     const doctorGrid = document.getElementById("doctorGrid");
     const emptyState = document.getElementById("emptyState");
-    const doctors = loadDoctors();
 
-    if (!doctors.length) {
-      emptyState.hidden = false;
-    } else {
-      doctorGrid.innerHTML = doctors.map((doctor) => `
-        <a class="doctor-card" href="hospital_doctor_details.html?id=${doctor.id}">
-          <div class="doctor-avatar"><i class="fa-solid fa-user-doctor"></i></div>
-          <div>
-            <h3>${doctor.name}</h3>
-            <p>${doctor.specialty}</p>
-          </div>
-          <div class="doctor-meta">
-            <span><i class="fa-regular fa-clock"></i>${doctor.experience}</span>
-            <span><i class="fa-solid fa-calendar-day"></i>${doctor.availability}</span>
-            <span><i class="fa-solid fa-phone"></i>${doctor.phone}</span>
-          </div>
-        </a>
-      `).join("");
+    async function loadDoctorList() {
+      try {
+        const doctors = await loadDoctors();
+
+        if (!doctors.length) {
+          emptyState.hidden = false;
+        } else {
+          doctorGrid.innerHTML = doctors.map((doctor) => `
+            <a class="doctor-card" href="hospital_doctor_details.html?id=${doctor.id}">
+              <div class="doctor-avatar"><i class="fa-solid fa-user-doctor"></i></div>
+              <div>
+                <h3>${doctor.name}</h3>
+                <p>${doctor.specialty}</p>
+              </div>
+              <div class="doctor-meta">
+                <span><i class="fa-regular fa-clock"></i>${doctor.experience}</span>
+                <span><i class="fa-solid fa-calendar-day"></i>${doctor.availability}</span>
+                <span><i class="fa-solid fa-phone"></i>${doctor.phone}</span>
+              </div>
+            </a>
+          `).join("");
+        }
+      } catch (error) {
+        console.error('Error loading doctors:', error);
+        emptyState.hidden = false;
+        emptyState.textContent = "Error loading doctors. Please try again.";
+      }
     }
+
+    loadDoctorList();
   </script>
 </body>
 </html>

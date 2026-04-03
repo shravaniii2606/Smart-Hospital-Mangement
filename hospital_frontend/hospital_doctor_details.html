@@ -92,36 +92,56 @@
       </section>
     </section>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="hospital_doctors.js"></script>
   <script>
     const query = new URLSearchParams(window.location.search);
     const doctorId = query.get("id");
-    const doctor = doctorId ? getDoctorById(doctorId) : null;
     const detailCard = document.getElementById("detailCard");
     const missingCard = document.getElementById("missingCard");
 
-    if (!doctor) {
-      missingCard.hidden = false;
-    } else {
-      detailCard.hidden = false;
-      document.getElementById("doctorName").textContent = doctor.name;
-      document.getElementById("doctorSpecialty").textContent = doctor.specialty;
-      document.getElementById("doctorExperience").textContent = doctor.experience;
-      document.getElementById("doctorAvailability").textContent = doctor.availability;
-      document.getElementById("doctorEmail").textContent = doctor.email;
-      document.getElementById("doctorPhone").textContent = doctor.phone;
-      document.getElementById("doctorBio").textContent = doctor.bio;
-      document.getElementById("editButton").href = `hospital_doctor_form.html?id=${doctor.id}`;
+    async function loadDoctorDetails() {
+      if (!doctorId) {
+        missingCard.hidden = false;
+        return;
+      }
 
-      document.getElementById("deleteButton").addEventListener("click", function () {
-        if (!window.confirm("Delete this doctor from the directory?")) {
-          return;
+      try {
+        const doctor = await getDoctorById(doctorId);
+        if (!doctor) {
+          missingCard.hidden = false;
+        } else {
+          detailCard.hidden = false;
+          document.getElementById("doctorName").textContent = doctor.name;
+          document.getElementById("doctorSpecialty").textContent = doctor.specialty;
+          document.getElementById("doctorExperience").textContent = doctor.experience;
+          document.getElementById("doctorAvailability").textContent = doctor.availability;
+          document.getElementById("doctorEmail").textContent = doctor.email;
+          document.getElementById("doctorPhone").textContent = doctor.phone;
+          document.getElementById("doctorBio").textContent = doctor.bio;
+          document.getElementById("editButton").href = `hospital_doctor_form.html?id=${doctor.id}`;
+
+          document.getElementById("deleteButton").addEventListener("click", async function () {
+            if (!window.confirm("Delete this doctor from the directory?")) {
+              return;
+            }
+
+            try {
+              await deleteDoctor(doctor.id);
+              window.location.href = "hospital_doctors.html";
+            } catch (error) {
+              console.error('Error deleting doctor:', error);
+              alert("Error deleting doctor. Please try again.");
+            }
+          });
         }
-
-        deleteDoctor(doctor.id);
-        window.location.href = "hospital_doctors.html";
-      });
+      } catch (error) {
+        console.error('Error loading doctor:', error);
+        missingCard.hidden = false;
+      }
     }
+
+    loadDoctorDetails();
   </script>
 </body>
 </html>
