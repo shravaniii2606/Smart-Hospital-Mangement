@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Patient Login</title>
+  <title>Hospital Login</title>
   <style>
     * {
       box-sizing: border-box;
@@ -13,6 +13,7 @@
 
     :root {
       --primary: #0b4ea2;
+      --primary-dark: #083a79;
       --accent: #17a2b8;
       --text: #14213d;
       --muted: #5d6f8f;
@@ -149,14 +150,22 @@
       background: transparent;
       color: #33415f;
       transition: 0.2s ease;
-      text-decoration: none;
-      text-align: center;
     }
 
     .auth-tab.active {
       background: #fff;
       color: var(--primary);
       box-shadow: 0 10px 18px rgba(11, 78, 162, 0.12);
+    }
+
+    .auth-tab.patient-link {
+      text-decoration: none;
+      text-align: center;
+    }
+
+    .auth-tab.hospital-link {
+      text-decoration: none;
+      text-align: center;
     }
 
     form {
@@ -208,22 +217,10 @@
       box-shadow: 0 14px 24px rgba(11, 78, 162, 0.2);
     }
 
-    .auth-error {
+    .error {
       min-height: 20px;
       color: #c52d2d;
       font-size: 13px;
-    }
-
-    .sub {
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    .sub a {
-      color: var(--primary);
-      font-weight: 700;
-      text-decoration: none;
     }
 
     @media (max-width: 860px) {
@@ -258,50 +255,63 @@
     <section class="brand-panel">
       <div class="brand-copy">
         <div class="brand-badge" aria-hidden="true"></div>
-        <h1>HealthSphere Patient Console</h1>
-        <p>Secure access for patients to manage appointments, reports, and everyday healthcare support in one place.</p>
+        <h1>HealthSphere Hospital Console</h1>
+        <p>Secure access for hospitals to manage admissions, staff workflows, and patient-facing services from one place.</p>
       </div>
 
       <ul class="brand-points">
-        <li>Check appointments, doctors, and reports from one dashboard.</li>
-        <li>Use your patient account to access your health journey quickly.</li>
-        <li>Move directly to the patient home page after login.</li>
+        <li>Track hospital operations with a focused staff dashboard.</li>
+        <li>Use your assigned hospital ID to access the portal quickly.</li>
+        <li>Move directly to the hospital home page after login.</li>
       </ul>
     </section>
 
     <section class="login-panel">
       <div class="top-note">
-        <h2>Patient Login</h2>
-        <p>Enter your email and password to continue.</p>
+        <h2>Hospital Login</h2>
+        <p>Enter your hospital ID and password to continue.</p>
       </div>
 
       <div class="auth-switch" role="tablist" aria-label="Login type">
-        <a class="auth-tab active" href="login.html?role=patient" role="tab" aria-selected="true">Patient</a>
-        <a class="auth-tab" href="../hospital_frontend/hospital_login.html" role="tab" aria-selected="false">Hospital</a>
+        <a class="auth-tab patient-link" href="../patient_frontend/login.html?role=patient" role="tab" aria-selected="false">Patient</a>
+        <a class="auth-tab active hospital-link" href="hospital_login.html" role="tab" aria-selected="true">Hospital</a>
       </div>
 
-      <form id="loginForm" novalidate>
+      <form id="hospitalLoginForm" novalidate>
         <div class="field">
-          <label for="loginEmail">Email</label>
-          <input class="input" type="email" id="loginEmail" placeholder="Enter email" required />
+          <label for="hospitalId">Hospital ID</label>
+          <input id="hospitalId" class="input" type="text" placeholder="Enter hospital ID" required />
         </div>
 
         <div class="field">
-          <label for="loginPassword">Password</label>
-          <input class="input" type="password" id="loginPassword" placeholder="Enter password" required />
+          <label for="hospitalPassword">Password</label>
+          <input id="hospitalPassword" class="input" type="password" placeholder="Enter password" required />
         </div>
 
-        <p class="helper">Login with your patient account to open the patient home screen.</p>
-        <p id="loginError" class="auth-error" hidden></p>
+        
+        <p id="loginError" class="error" aria-live="polite"></p>
 
         <button class="btn" type="submit">Submit</button>
       </form>
-
-      <p class="sub">New user? <a href="signup.html?role=patient">Create Account</a></p>
     </section>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js"></script>
+  <script>
+    document.getElementById("hospitalLoginForm").addEventListener("submit", function (event) {
+      event.preventDefault();
+
+      var hospitalId = document.getElementById("hospitalId").value.trim();
+      var password = document.getElementById("hospitalPassword").value.trim();
+      var error = document.getElementById("loginError");
+
+      if (!hospitalId || !password) {
+        error.textContent = "Please enter both hospital ID and password.";
+        return;
+      }
+
+      error.textContent = "";
+      window.location.href = "hospital_home.html";
+    });
+  </script>
 </body>
 </html>
