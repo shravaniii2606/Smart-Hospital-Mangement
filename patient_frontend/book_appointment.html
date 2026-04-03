@@ -290,7 +290,7 @@
         const userId = user.id;
         let profileResult = await supabaseClient
           .from("patient_profile")
-          .select("user_id")
+          .select("user_id, name")
           .eq("user_id", userId)
           .maybeSingle();
 
@@ -303,6 +303,8 @@
           showError("Please complete your profile before booking an appointment.");
           return;
         }
+
+        const patientName = profileResult.data.name || "Patient";
 
         const token = pad2(Math.floor(Math.random() * 90) + 10);
         tokenEl.textContent = token;

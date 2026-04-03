@@ -18,29 +18,81 @@ async function loadDoctors() {
     console.error('Error loading doctors:', error);
     return [];
   }
+
+  console.debug('Loaded doctors:', data);
   return data || [];
 }
 
 async function getDoctorById(id) {
   const supabase = getSupabaseClient();
-  const { data, error } = await supabase
+  console.debug('getDoctorById called with id:', id);
+
+  // try doc_id first
+  let { data, error } = await supabase
     .from('doctor_profile')
     .select('*')
-    .eq('id', id)
+    .eq('doc_id', id)
     .single();
 
-  if (error) {
-    console.error('Error getting doctor:', error);
-    return null;
+  console.debug('id query result:', { data, error });
+
+  if (error || !data) {
+    // fallback to id
+    const fallback = await supabase
+      .from('doctor_profile')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    console.debug('doc_id query result:', { data: fallback.data, error: fallback.error });
+
+    if (fallback.error || !fallback.data) {
+      console.warn('Doctor not found by id or doc_id:', id, error || fallback.error);
+      return null;
+    }
+
+    return fallback.data;
   }
+
   return data;
+}
+
+async function loadAppointmentsForDoctor(doctorId) {
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from('appointments')
+    .select('*')
+    .eq('doctor_id', doctorId)
+    .eq('status', 'pending')
+    .order('appointment_date', { ascending: true })
+    .order('appointment_time', { ascending: true });
+
+  if (error) {
+    console.error('Error loading appointments for doctor:', error);
+    return [];
+  }
+
+  console.debug(`Loaded ${data ? data.length : 0} appointments for doctor ${doctorId}`, data);
+  return data || [];
+}
+
+async function updateAppointmentStatus(appointmentId, status) {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase
+    .from('appointments')
+    .update({ status })
+    .eq('id', appointmentId);
+  if (error) {
+    console.error('Error updating appointment status:', error);
+    throw error;
+  }
 }
 
 async function upsertDoctor(doctorData) {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from('doctor_profile')
-    .upsert(doctorData, { onConflict: 'id' });
+    .upsert(doctorData, { onConflict: 'doc_id' });
 
   if (error) {
     console.error('Error upserting doctor:', error);
@@ -54,7 +106,7 @@ async function deleteDoctor(id) {
   const { error } = await supabase
     .from('doctor_profile')
     .delete()
-    .eq('id', id);
+    .eq('doc_id', id);
 
   if (error) {
     console.error('Error deleting doctor:', error);

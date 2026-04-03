@@ -148,6 +148,8 @@
             .select('*')
             .order('name', { ascending: true });
 
+          console.debug('Patient loadDoctors response:', { data, error });
+
           if (error) {
             console.error('Error loading doctors:', error);
             document.getElementById("loadingMessage").textContent = "Error loading doctors";

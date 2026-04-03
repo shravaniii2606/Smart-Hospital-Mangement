@@ -46,7 +46,7 @@
         <a class="side-link" href="hospital_home.html"><span><i class="fa-solid fa-house"></i></span><small>Home</small></a>
         <a class="side-link active" href="hospital_doctors.html"><span><i class="fa-solid fa-user-doctor"></i></span><small>Add Doctors</small></a>
         <a class="side-link" href="#"><span><i class="fa-solid fa-bed"></i></span><small>Bed Availability</small></a>
-        <a class="side-link" href="#"><span><i class="fa-solid fa-calendar-check"></i></span><small>Appointments</small></a>
+        <a class="side-link" href="hospital_appointments.html"><span><i class="fa-solid fa-calendar-check"></i></span><small>Appointments</small></a>
         <a class="side-link" href="hospital_patients.html"><span><i class="fa-solid fa-hospital-user"></i></span><small>Patient</small></a>
         <a class="side-link" href="hospital_patients.html"><span><i class="fa-solid fa-notes-medical"></i></span><small>Patient</small></a>
         <a class="side-link" href="#"><span><i class="fa-solid fa-truck-medical"></i></span><small>Emergency</small></a>
@@ -72,6 +72,18 @@
           <div class="detail-box"><span>Phone</span><strong id="doctorPhone"></strong></div>
           <div class="detail-box" style="grid-column: 1 / -1;"><span>Doctor Details</span><p id="doctorBio"></p></div>
         </div>
+
+        <section class="page-card" style="margin-top: 20px;">
+          <div class="page-head">
+            <div>
+              <h1>Doctor Appointment Requests</h1>
+              <p>Pending bookings for this doctor.</p>
+            </div>
+          </div>
+          <div id="doctorAppointmentsList" class="appointments-list"></div>
+          <div id="doctorNoAppointments" class="empty-state" hidden>No pending appointments for this doctor yet.</div>
+        </section>
+
         <div class="actions">
           <a id="editButton" class="button button-primary" href="#"><i class="fa-solid fa-pen"></i><span>Edit Details</span></a>
           <button id="deleteButton" class="button button-danger" type="button"><i class="fa-solid fa-trash"></i><span>Delete Doctor</span></button>
@@ -95,10 +107,13 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="hospital_doctors.js"></script>
   <script>
+    console.log('hospital_doctor_details.html script loaded');
     const query = new URLSearchParams(window.location.search);
     const doctorId = query.get("id");
     const detailCard = document.getElementById("detailCard");
     const missingCard = document.getElementById("missingCard");
+
+    console.debug('Doctor details loading id:', doctorId);
 
     async function loadDoctorDetails() {
       if (!doctorId) {
@@ -119,7 +134,7 @@
           document.getElementById("doctorEmail").textContent = doctor.email;
           document.getElementById("doctorPhone").textContent = doctor.phone;
           document.getElementById("doctorBio").textContent = doctor.bio;
-          document.getElementById("editButton").href = `hospital_doctor_form.html?id=${doctor.id}`;
+          document.getElementById("editButton").href = `hospital_doctor_form.html?id=${doctor.doc_id}`;
 
           document.getElementById("deleteButton").addEventListener("click", async function () {
             if (!window.confirm("Delete this doctor from the directory?")) {
@@ -127,19 +142,77 @@
             }
 
             try {
-              await deleteDoctor(doctor.id);
+              await deleteDoctor(doctor.doc_id);
               window.location.href = "hospital_doctors.html";
             } catch (error) {
               console.error('Error deleting doctor:', error);
               alert("Error deleting doctor. Please try again.");
             }
           });
+
+          await loadDoctorAppointments(doctor.doc_id);
         }
       } catch (error) {
         console.error('Error loading doctor:', error);
         missingCard.hidden = false;
       }
     }
+
+    async function loadDoctorAppointments(doctorId) {
+      try {
+        const appointments = await loadAppointmentsForDoctor(doctorId);
+        renderDoctorAppointments(appointments);
+      } catch (error) {
+        console.error('Error loading doctor appointments:', error);
+      }
+    }
+
+    function renderDoctorAppointments(appointments) {
+      const listEl = document.getElementById("doctorAppointmentsList");
+      const noEl = document.getElementById("doctorNoAppointments");
+
+      if (!appointments || appointments.length === 0) {
+        listEl.innerHTML = "";
+        noEl.hidden = false;
+        return;
+      }
+
+      noEl.hidden = true;
+      listEl.innerHTML = appointments.map((appt) => `
+        <div class="appointment-card">
+          <div class="appointment-header">
+            <h3>${appt.user_id || "Patient"} - ${appt.appointment_date || "-"} ${appt.appointment_time || ""}</h3>
+            <div class="appointment-actions">
+              <button class="button button-primary" data-approve-id="${appt.id}"><i class="fa-solid fa-check"></i> Approve</button>
+              <button class="button button-danger" data-cancel-id="${appt.id}"><i class="fa-solid fa-xmark"></i> Cancel</button>
+            </div>
+          </div>
+          <div class="appointment-details">
+            <div class="detail-item"><div class="detail-label">Patient UID</div><div class="detail-value">${appt.user_id || "-"}</div></div>
+            <div class="detail-item"><div class="detail-label">Mode</div><div class="detail-value">${appt.mode || "-"}</div></div>
+            <div class="detail-item"><div class="detail-label">Reason</div><div class="detail-value">${appt.reason || "-"}</div></div>
+            ${appt.notes ? `<div class="detail-item" style="grid-column:1/-1"><div class="detail-label">Notes</div><div class="detail-value">${appt.notes}</div></div>` : ""}
+            <div class="detail-item"><div class="detail-label">Status</div><div class="detail-value">${appt.status}</div></div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    document.getElementById("doctorAppointmentsList").addEventListener("click", async (event) => {
+      const approveBtn = event.target.closest("[data-approve-id]");
+      const cancelBtn = event.target.closest("[data-cancel-id]");
+      if (!approveBtn && !cancelBtn) return;
+
+      const appointmentId = approveBtn ? approveBtn.getAttribute("data-approve-id") : cancelBtn.getAttribute("data-cancel-id");
+      const status = approveBtn ? "approved" : "cancelled";
+
+      try {
+        await updateAppointmentStatus(appointmentId, status);
+        await loadDoctorAppointments(doctorId);
+      } catch (err) {
+        alert("Unable to update appointment status.");
+      }
+    });
 
     loadDoctorDetails();
   </script>

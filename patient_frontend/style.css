@@ -1380,6 +1380,16 @@ a {
   color: #1f8f4e;
 }
 
+.appt-status-badge.approved {
+  background: #e6f4ea;
+  color: #1f8f4e;
+}
+
+.appt-status-badge.cancelled {
+  background: #fce8e6;
+  color: #d93025;
+}
+
 .appt-status-badge.previous {
   background: #eef1f7;
   color: #5d6a86;
