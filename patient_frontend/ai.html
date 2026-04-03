@@ -61,18 +61,139 @@
             </header>
 
             <section class="hs-location-card">
-              <div class="hs-location-row">
-                <div class="hs-location-icon"><i class="fa-solid fa-robot"></i></div>
-                <div>
-                  <h4>Chat with AI</h4>
-                  <p>AI chatbot experience will appear here.</p>
+              <section class="hs-ai-shell">
+                <div class="hs-ai-top">
+                  <h3>Speak with HealthSphere AI</h3>
+                  <p>Tap the center orb to dictate. Your speech will appear in the textbox below.</p>
                 </div>
-              </div>
+
+                <div class="hs-ai-chat" id="aiChat" aria-live="polite">
+                  <div class="hs-chat-bubble bot">
+                    <p>Hello! How can I help you today?</p>
+                    <span>HealthSphere AI</span>
+                  </div>
+                </div>
+
+                <div class="hs-ai-center">
+                  <button class="hs-voice-btn" id="voiceBtn" type="button" aria-label="Start voice input">
+                    <i class="fa-solid fa-microphone"></i>
+                  </button>
+                  <div class="hs-voice-status" id="voiceStatus">Tap to speak</div>
+                </div>
+
+                <div class="hs-ai-input">
+                  <label class="hs-ai-label" for="aiText">Your message</label>
+                  <textarea id="aiText" class="hs-ai-text" rows="3" placeholder="Your spoken text appears here..."></textarea>
+                  <button class="hs-ai-send" id="aiSend" type="button">Send</button>
+                </div>
+              </section>
             </section>
           </section>
         </div>
       </div>
     </article>
   </main>
+
+  <script>
+    (function () {
+      var voiceBtn = document.getElementById("voiceBtn");
+      var voiceStatus = document.getElementById("voiceStatus");
+      var aiText = document.getElementById("aiText");
+      var aiSend = document.getElementById("aiSend");
+      var aiChat = document.getElementById("aiChat");
+      var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        voiceBtn.disabled = true;
+        voiceBtn.setAttribute("aria-disabled", "true");
+        voiceStatus.textContent = "Voice input not supported in this browser.";
+        return;
+      }
+
+      var recognition = new SpeechRecognition();
+      recognition.lang = "en-US";
+      recognition.interimResults = false;
+      recognition.continuous = false;
+
+      var isListening = false;
+
+      voiceBtn.addEventListener("click", function () {
+        if (isListening) {
+          recognition.stop();
+          return;
+        }
+        recognition.start();
+      });
+
+      recognition.onstart = function () {
+        isListening = true;
+        voiceBtn.classList.add("listening");
+        voiceStatus.textContent = "Listening...";
+      };
+
+      recognition.onend = function () {
+        isListening = false;
+        voiceBtn.classList.remove("listening");
+        if (voiceStatus.textContent === "Listening...") {
+          voiceStatus.textContent = "Tap to speak";
+        }
+      };
+
+      recognition.onerror = function () {
+        isListening = false;
+        voiceBtn.classList.remove("listening");
+        voiceStatus.textContent = "Could not capture audio. Try again.";
+      };
+
+      recognition.onresult = function (event) {
+        var transcript = event.results[0][0].transcript;
+        aiText.value = transcript;
+        voiceStatus.textContent = "Captured. Tap to speak again.";
+      };
+
+      function appendBubble(text, type, label) {
+        var bubble = document.createElement("div");
+        bubble.className = "hs-chat-bubble " + type;
+        var p = document.createElement("p");
+        p.textContent = text;
+        var meta = document.createElement("span");
+        meta.textContent = label;
+        bubble.appendChild(p);
+        bubble.appendChild(meta);
+        aiChat.appendChild(bubble);
+        aiChat.scrollTop = aiChat.scrollHeight;
+      }
+
+      function getBotReply(message) {
+        var msg = message.toLowerCase();
+        if (msg.includes("good morning")) {
+          return "Good morning! Hope you are feeling great today. How can I assist you?";
+        }
+        return "Thanks for your message. I am here to help with appointments, reports, or symptoms.";
+      }
+
+      aiSend.addEventListener("click", function () {
+        var message = aiText.value.trim();
+        if (!message) {
+          voiceStatus.textContent = "Type or speak a message before sending.";
+          return;
+        }
+
+        aiSend.disabled = true;
+        aiSend.textContent = "Sending...";
+        voiceStatus.textContent = "Sending to backend (mock)...";
+
+        setTimeout(function () {
+          appendBubble(message, "user", "You");
+          var reply = getBotReply(message);
+          appendBubble(reply, "bot", "HealthSphere AI");
+          voiceStatus.textContent = "Sent (mock).";
+          aiText.value = "";
+          aiSend.disabled = false;
+          aiSend.textContent = "Send";
+        }, 700);
+      });
+    })();
+  </script>
 </body>
 </html>
