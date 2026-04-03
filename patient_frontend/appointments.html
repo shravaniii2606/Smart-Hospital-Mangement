@@ -159,9 +159,10 @@
         listEl.innerHTML = filteredRows.map((appt) => {
           const upcoming = isUpcoming(appt);
           const isCancelled = appt.status === "cancelled";
-          const badgeClass = isCancelled ? "previous" : (upcoming ? "upcoming" : "previous");
-          const badgeText = isCancelled ? "Cancelled" : (upcoming ? "Upcoming" : "Previous");
-          const cancelButton = upcoming && !isCancelled
+          const isApproved = appt.status === "approved";
+          const badgeClass = isCancelled ? "cancelled" : (isApproved ? "approved" : (upcoming ? "upcoming" : "previous"));
+          const badgeText = isCancelled ? "Cancelled" : (isApproved ? "Approved" : (upcoming ? "Upcoming" : "Previous"));
+          const cancelButton = upcoming && !isCancelled && !isApproved
             ? `<button class="btn-mini btn-danger" type="button" data-cancel-id="${appt.id}">Cancel</button>`
             : "";
           return `
