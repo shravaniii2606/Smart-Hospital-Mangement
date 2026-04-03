@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hospital Home</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     * {
       box-sizing: border-box;
@@ -35,145 +36,261 @@
     }
 
     .dashboard {
-      max-width: 1180px;
+      max-width: 1320px;
       margin: 0 auto;
-      display: grid;
-      grid-template-columns: 260px 1fr;
-      gap: 22px;
-    }
-
-    .sidebar {
-      background: linear-gradient(180deg, var(--navy), #14346b 56%, #0c204f);
-      color: #fff;
-      border-radius: 28px;
-      padding: 26px 20px;
-      display: grid;
+      display: flex;
       gap: 18px;
-      align-content: start;
+      align-items: flex-start;
       min-height: calc(100vh - 48px);
     }
 
-    .logo-box {
+    .sidebar-shell {
+      width: 138px;
+      flex: 0 0 138px;
+      background: linear-gradient(180deg, var(--navy), #14346b 56%, #0c204f);
+      border-radius: 26px;
+      box-shadow: 0 18px 42px rgba(15, 43, 99, 0.18);
+      padding: 16px 12px;
+    }
+
+    .sidebar {
       display: grid;
-      gap: 10px;
+      gap: 22px;
+      align-content: start;
     }
 
-    .logo-mark {
-      width: 64px;
-      height: 64px;
+    .side-link {
+      min-height: 76px;
       border-radius: 18px;
-      background: rgba(255, 255, 255, 0.14);
-      position: relative;
-    }
-
-    .logo-mark::before,
-    .logo-mark::after {
-      content: "";
-      position: absolute;
-      background: #fff;
-      border-radius: 999px;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-    }
-
-    .logo-mark::before {
-      width: 14px;
-      height: 36px;
-    }
-
-    .logo-mark::after {
-      width: 36px;
-      height: 14px;
-    }
-
-    .logo-box h1 {
-      font-size: 24px;
-      line-height: 1.1;
-    }
-
-    .logo-box p {
-      color: rgba(255, 255, 255, 0.76);
-      line-height: 1.5;
-      font-size: 14px;
-    }
-
-    .menu-link {
-      display: block;
-      padding: 12px 14px;
-      border-radius: 14px;
+      padding: 10px 8px;
       background: rgba(255, 255, 255, 0.08);
       color: #eef4ff;
       text-decoration: none;
-      font-weight: 600;
+      display: grid;
+      justify-items: center;
+      align-content: center;
+      gap: 8px;
+      text-align: center;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
     }
 
-    .menu-link.active {
-      background: rgba(255, 255, 255, 0.2);
+    .side-link.active {
+      background: rgba(255, 255, 255, 0.22);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+    }
+
+    .side-link span {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.12);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+
+    .side-link small {
+      font-size: 12px;
+      line-height: 1.2;
+      font-weight: 700;
     }
 
     .content {
       display: grid;
       gap: 22px;
       align-content: start;
+      flex: 1;
     }
 
-    .hero {
-      background: linear-gradient(135deg, var(--blue), var(--sky));
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 6px 2px 0;
+    }
+
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #2d75d7, #0f56b9);
       color: #fff;
-      border-radius: 28px;
-      padding: 28px;
       display: grid;
+      place-items: center;
+      box-shadow: 0 12px 26px rgba(11, 78, 162, 0.22);
+    }
+
+    .brand-name {
+      font-size: 20px;
+      font-weight: 800;
+      color: #1a2741;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+    }
+
+    .hero-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 14px 30px rgba(23, 35, 61, 0.06);
+    }
+
+    .hero-card h1 {
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1;
+      margin: 8px 0 12px;
+    }
+
+    .hero-card p {
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 620px;
+    }
+
+    .hello {
+      font-size: 18px;
+      color: #384b72;
+    }
+
+    .brand-showcase {
+      margin-top: 26px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, rgba(11, 78, 162, 0.08), rgba(23, 162, 184, 0.14));
+      padding: 24px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .showcase-logo {
+      width: 88px;
+      height: 88px;
+      border-radius: 28px;
+      background: linear-gradient(145deg, #1c68cf, #0d3f8f);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-size: 36px;
+      box-shadow: 0 16px 28px rgba(15, 43, 99, 0.2);
+    }
+
+    .showcase-copy h2 {
+      font-size: 26px;
+      margin-bottom: 6px;
+    }
+
+    .showcase-copy p {
+      max-width: 460px;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 16px;
-      box-shadow: 0 20px 40px rgba(11, 78, 162, 0.14);
     }
 
-    .hero h2 {
-      font-size: clamp(28px, 4vw, 42px);
-      line-height: 1.08;
+    .metric-card {
+      background: linear-gradient(180deg, #fff, #f6faff);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 10px 22px rgba(23, 35, 61, 0.04);
     }
 
-    .hero p {
-      color: rgba(255, 255, 255, 0.88);
-      max-width: 680px;
+    .metric-card h3 {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .metric-card strong {
+      display: block;
+      font-size: 30px;
+      margin-bottom: 6px;
+    }
+
+    .metric-card p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .chart-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 14px 30px rgba(23, 35, 61, 0.06);
+    }
+
+    .chart-card h2 {
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+
+    .chart-card p {
+      color: var(--muted);
       line-height: 1.6;
     }
 
-    .stats {
+    .chart-panel {
+      margin-top: 18px;
+      background: linear-gradient(180deg, #f7fbff 0%, #eef5fd 100%);
+      border: 1px solid #d8e4f2;
+      border-radius: 22px;
+      padding: 22px 18px 18px;
+    }
+
+    .chart {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .chart-summary {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .summary-box {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 16px;
+    }
+
+    .summary-box span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 5px;
+    }
+
+    .summary-box strong {
+      font-size: 22px;
+      color: var(--text);
+    }
+
+    .lower-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
       gap: 16px;
     }
 
     .card {
       background: var(--white);
       border: 1px solid var(--line);
-      border-radius: 20px;
-      padding: 20px;
+      border-radius: 24px;
+      padding: 22px;
       box-shadow: 0 10px 24px rgba(23, 35, 61, 0.05);
-    }
-
-    .stat-label {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 10px;
-    }
-
-    .stat-value {
-      font-size: 32px;
-      font-weight: 800;
-      margin-bottom: 6px;
-    }
-
-    .stat-note {
-      font-size: 13px;
-      color: var(--muted);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1.2fr 0.8fr;
-      gap: 16px;
     }
 
     .section-title {
@@ -238,15 +355,21 @@
 
     @media (max-width: 980px) {
       .dashboard {
-        grid-template-columns: 1fr;
+        display: grid;
+      }
+
+      .sidebar-shell {
+        width: 100%;
       }
 
       .sidebar {
-        min-height: auto;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
 
-      .stats,
-      .grid {
+      .hero-grid,
+      .lower-grid,
+      .metrics-grid,
+      .chart-summary {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
@@ -256,92 +379,180 @@
         padding: 12px;
       }
 
-      .stats,
-      .grid {
+      .sidebar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .hero-grid,
+      .lower-grid,
+      .metrics-grid,
+      .chart-summary,
+      .brand-showcase {
         grid-template-columns: 1fr;
+      }
+
+      .hero-card,
+      .chart-card,
+      .card {
+        padding: 18px;
       }
     }
   </style>
 </head>
 <body>
   <main class="dashboard">
-    <aside class="sidebar">
-      <div class="logo-box">
-        <div class="logo-mark" aria-hidden="true"></div>
-        <h1>HealthSphere Hospital</h1>
-        <p>Hospital operations dashboard for admissions, staff, and care coordination.</p>
-      </div>
-
-      <a class="menu-link active" href="hospital_home.html">Dashboard</a>
-      <a class="menu-link" href="hospital_login.html">Login</a>
-      <a class="menu-link" href="home.html">Existing Home</a>
+    <aside class="sidebar-shell">
+      <nav class="sidebar" aria-label="Hospital sections">
+        <a class="side-link active" href="hospital_home.html">
+          <span><i class="fa-solid fa-house"></i></span>
+          <small>Home</small>
+        </a>
+        <a class="side-link" href="#">
+          <span><i class="fa-solid fa-user-doctor"></i></span>
+          <small>Add Doctors</small>
+        </a>
+        <a class="side-link" href="#">
+          <span><i class="fa-solid fa-bed"></i></span>
+          <small>Bed Availability</small>
+        </a>
+        <a class="side-link" href="#">
+          <span><i class="fa-solid fa-calendar-check"></i></span>
+          <small>Appointments</small>
+        </a>
+        <a class="side-link" href="#">
+          <span><i class="fa-solid fa-hospital-user"></i></span>
+          <small>Patient</small>
+        </a>
+        <a class="side-link" href="#">
+          <span><i class="fa-solid fa-notes-medical"></i></span>
+          <small>Patient</small>
+        </a>
+        <a class="side-link" href="#">
+          <span><i class="fa-solid fa-truck-medical"></i></span>
+          <small>Emergency</small>
+        </a>
+      </nav>
     </aside>
 
     <section class="content">
-      <section class="hero">
-        <h2>Welcome to the hospital home page</h2>
-        <p>Your hospital login is now connected to this dashboard screen. You can extend this page later with live beds, appointments, staff actions, and patient requests.</p>
+      <div class="brand-row">
+        <div class="brand-logo"><i class="fa-solid fa-heart-pulse"></i></div>
+        <div class="brand-name">HealthSphere</div>
+      </div>
+
+      <section class="hero-grid">
+        <article class="hero-card">
+          <p class="hello">Hello,</p>
+          <h1>Hospital Team</h1>
+          <p>Manage doctors, beds, emergency flow, and patient activity from one HealthSphere dashboard while keeping the hospital theme aligned with the existing portal.</p>
+
+          <div class="brand-showcase">
+            <div class="showcase-logo"><i class="fa-solid fa-heart-pulse"></i></div>
+            <div class="showcase-copy">
+              <h2>HealthSphere</h2>
+              <p>Connected hospital operations for faster admissions, smoother appointments, and clearer care coordination.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="chart-card">
+          <h2>Patient Appointments Growth</h2>
+          <p>Static demo data showing an increasing appointment trend across the last six months.</p>
+
+          <div class="chart-panel">
+            <svg class="chart" viewBox="0 0 520 260" role="img" aria-label="Line chart showing patient appointments increasing from January to June">
+              <defs>
+                <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#0f56b9" />
+                  <stop offset="100%" stop-color="#17a2b8" />
+                </linearGradient>
+                <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#17a2b8" stop-opacity="0.30" />
+                  <stop offset="100%" stop-color="#17a2b8" stop-opacity="0.02" />
+                </linearGradient>
+              </defs>
+
+              <line x1="48" y1="24" x2="48" y2="206" stroke="#b8cbe2" stroke-width="2"/>
+              <line x1="48" y1="206" x2="490" y2="206" stroke="#b8cbe2" stroke-width="2"/>
+              <line x1="48" y1="160" x2="490" y2="160" stroke="#d9e6f5" stroke-width="1"/>
+              <line x1="48" y1="114" x2="490" y2="114" stroke="#d9e6f5" stroke-width="1"/>
+              <line x1="48" y1="68" x2="490" y2="68" stroke="#d9e6f5" stroke-width="1"/>
+
+              <path d="M80 178 L150 160 L220 138 L290 116 L360 92 L430 58 L430 206 L80 206 Z" fill="url(#areaGradient)"/>
+              <path d="M80 178 L150 160 L220 138 L290 116 L360 92 L430 58" fill="none" stroke="url(#lineGradient)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+
+              <circle cx="80" cy="178" r="7" fill="#0f56b9"/>
+              <circle cx="150" cy="160" r="7" fill="#0f56b9"/>
+              <circle cx="220" cy="138" r="7" fill="#0f56b9"/>
+              <circle cx="290" cy="116" r="7" fill="#0f56b9"/>
+              <circle cx="360" cy="92" r="7" fill="#0f56b9"/>
+              <circle cx="430" cy="58" r="7" fill="#17a2b8"/>
+
+              <text x="24" y="210" fill="#6f82a2" font-size="12">0</text>
+              <text x="16" y="164" fill="#6f82a2" font-size="12">100</text>
+              <text x="16" y="118" fill="#6f82a2" font-size="12">200</text>
+              <text x="16" y="72" fill="#6f82a2" font-size="12">300</text>
+
+              <text x="66" y="232" fill="#51637f" font-size="12">Jan</text>
+              <text x="136" y="232" fill="#51637f" font-size="12">Feb</text>
+              <text x="206" y="232" fill="#51637f" font-size="12">Mar</text>
+              <text x="276" y="232" fill="#51637f" font-size="12">Apr</text>
+              <text x="346" y="232" fill="#51637f" font-size="12">May</text>
+              <text x="416" y="232" fill="#51637f" font-size="12">Jun</text>
+            </svg>
+
+            <div class="chart-summary">
+              <div class="summary-box">
+                <span>Total This Month</span>
+                <strong>318</strong>
+              </div>
+              <div class="summary-box">
+                <span>Growth Rate</span>
+                <strong>+24%</strong>
+              </div>
+              <div class="summary-box">
+                <span>Peak Day</span>
+                <strong>Friday</strong>
+              </div>
+            </div>
+          </div>
+        </article>
       </section>
 
-      <section class="stats">
-        <article class="card">
-          <p class="stat-label">Beds Available</p>
-          <p class="stat-value">48</p>
-          <p class="stat-note">Across ICU and general wards</p>
+      <section class="metrics-grid">
+        <article class="metric-card">
+          <h3>Doctors Available</h3>
+          <strong>27</strong>
+          <p>Consultants and duty doctors currently marked active.</p>
         </article>
-        <article class="card">
-          <p class="stat-label">Admissions Today</p>
-          <p class="stat-value">19</p>
-          <p class="stat-note">6 pending discharge reviews</p>
+        <article class="metric-card">
+          <h3>Bed Capacity</h3>
+          <strong>48</strong>
+          <p>Open beds across ICU, general wards, and recovery rooms.</p>
         </article>
-        <article class="card">
-          <p class="stat-label">Doctors On Duty</p>
-          <p class="stat-value">27</p>
-          <p class="stat-note">Morning shift coverage active</p>
-        </article>
-        <article class="card">
-          <p class="stat-label">Emergency Queue</p>
-          <p class="stat-value">8</p>
-          <p class="stat-note">2 cases marked high priority</p>
+        <article class="metric-card">
+          <h3>Emergency Cases</h3>
+          <strong>8</strong>
+          <p>Live emergency queue with two critical cases prioritized.</p>
         </article>
       </section>
 
-      <section class="grid">
+      <section class="lower-grid">
         <article class="card">
           <h3 class="section-title">Recent Activity</h3>
           <div class="activity-list">
             <div class="activity-item">
-              <strong>Ward B updated</strong>
-              <p>Three general beds were marked available after scheduled discharges.</p>
+              <strong>Doctor onboarding prepared</strong>
+              <p>Profiles for new specialists are ready to be added under the doctors section.</p>
             </div>
             <div class="activity-item">
-              <strong>Staff roster synchronized</strong>
-              <p>Evening shift assignments were refreshed for emergency and radiology teams.</p>
+              <strong>Appointment demand rising</strong>
+              <p>Booking requests continue to increase steadily based on this month&apos;s demo trend.</p>
             </div>
             <div class="activity-item">
-              <strong>Patient support desk opened</strong>
-              <p>Front desk requests are ready to be routed to the hospital workflow.</p>
+              <strong>Bed updates synchronized</strong>
+              <p>Availability figures were refreshed for ICU and general ward planning.</p>
             </div>
-          </div>
-        </article>
-
-        <article class="card">
-          <h3 class="section-title">Quick Status</h3>
-          <div class="quick-list">
-            <div class="quick-item">
-              <strong>System</strong>
-              <p>Hospital portal frontend is active.</p>
-            </div>
-            <div class="quick-item">
-              <strong>Login Flow</strong>
-              <p>Users arriving from `hospital_login.html` are redirected here.</p>
-            </div>
-          </div>
-
-          <div class="tag-row">
-            <span class="tag success">Frontend Ready</span>
-            <span class="tag info">Hospital View</span>
-            <span class="tag warn">Demo Data</span>
           </div>
         </article>
       </section>
