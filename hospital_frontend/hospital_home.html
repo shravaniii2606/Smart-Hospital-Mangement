@@ -105,8 +105,15 @@
     .brand-row {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 12px;
       padding: 6px 2px 0;
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
     }
 
     .brand-logo {
@@ -124,6 +131,20 @@
       font-size: 20px;
       font-weight: 800;
       color: #1a2741;
+    }
+
+    .logout-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      color: #fff;
+      background: linear-gradient(135deg, #c83b3b, #e35d5d);
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 14px 24px rgba(200, 59, 59, 0.2);
     }
 
     .hero-grid {
@@ -419,11 +440,11 @@
           <span><i class="fa-solid fa-calendar-check"></i></span>
           <small>Appointments</small>
         </a>
-        <a class="side-link" href="#">
+        <a class="side-link" href="hospital_patients.html">
           <span><i class="fa-solid fa-hospital-user"></i></span>
           <small>Patient</small>
         </a>
-        <a class="side-link" href="#">
+        <a class="side-link" href="hospital_patients.html">
           <span><i class="fa-solid fa-notes-medical"></i></span>
           <small>Patient</small>
         </a>
@@ -436,8 +457,14 @@
 
     <section class="content">
       <div class="brand-row">
-        <div class="brand-logo"><i class="fa-solid fa-heart-pulse"></i></div>
-        <div class="brand-name">HealthSphere</div>
+        <div class="brand-left">
+          <div class="brand-logo"><i class="fa-solid fa-heart-pulse"></i></div>
+          <div class="brand-name">HealthSphere</div>
+        </div>
+        <a class="logout-link" href="../patient_frontend/signup.html">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Logout</span>
+        </a>
       </div>
 
       <section class="hero-grid">
