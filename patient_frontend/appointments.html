@@ -151,8 +151,30 @@
         return rows;
       }
 
+      function compareAppointments(left, right) {
+        const leftDate = left?.appointment_date || "";
+        const rightDate = right?.appointment_date || "";
+        if (leftDate !== rightDate) {
+          return leftDate.localeCompare(rightDate);
+        }
+
+        const leftTime = left?.appointment_time || "";
+        const rightTime = right?.appointment_time || "";
+        if (leftTime !== rightTime) {
+          return leftTime.localeCompare(rightTime);
+        }
+
+        const leftToken = Number(left?.token || 0);
+        const rightToken = Number(right?.token || 0);
+        if (!Number.isNaN(leftToken) && !Number.isNaN(rightToken) && leftToken !== rightToken) {
+          return leftToken - rightToken;
+        }
+
+        return 0;
+      }
+
       function renderAppointments(rows) {
-        const filteredRows = getFilteredAppointments(rows);
+        const filteredRows = getFilteredAppointments(rows).slice().sort(compareAppointments);
         if (!filteredRows || filteredRows.length === 0) {
           listEl.innerHTML = "";
           emptyEl.style.display = "block";
@@ -230,7 +252,7 @@
           return;
         }
 
-        allAppointments = data || [];
+        allAppointments = (data || []).slice().sort(compareAppointments);
         renderAppointments(allAppointments);
       }
 

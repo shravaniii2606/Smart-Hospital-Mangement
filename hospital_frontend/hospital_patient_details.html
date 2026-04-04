@@ -103,15 +103,19 @@
       </section>
     </section>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../hospital_backend/hospital_patients.js"></script>
   <script>
-    const query = new URLSearchParams(window.location.search);
-    const patientId = query.get("id");
-    const patient = patientId ? getPatientById(patientId) : null;
+    (async function () {
+      const query = new URLSearchParams(window.location.search);
+      const patientId = query.get("id");
+      const patient = patientId ? await getPatientById(patientId) : null;
 
-    if (!patient) {
-      document.getElementById("missingCard").style.display = "block";
-    } else {
+      if (!patient) {
+        document.getElementById("missingCard").style.display = "block";
+        return;
+      }
+
       document.getElementById("detailCard").hidden = false;
       document.getElementById("patientName").textContent = patient.name;
       document.getElementById("patientDiagnosis").textContent = patient.diagnosis;
@@ -124,7 +128,7 @@
       document.getElementById("appointmentsCard").href = `hospital_patient_appointments.html?id=${patient.id}`;
       document.getElementById("reportsCard").href = `hospital_patient_reports.html?id=${patient.id}`;
       document.getElementById("prescriptionsCard").href = `hospital_patient_prescriptions.html?id=${patient.id}`;
-    }
+    })();
   </script>
 </body>
 </html>

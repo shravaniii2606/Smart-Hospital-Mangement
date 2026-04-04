@@ -70,26 +70,44 @@
         <div class="brand-name">HealthSphere</div>
       </div>
       <section class="page-card">
-        <h1>Search Patient</h1>
-        <p>Search any patient by name and open the profile to view details, booked appointments, and reports.</p>
+        <h1>Patients</h1>
+        <p>Browse and search all registered patients stored in Supabase.</p>
         <div class="search-wrap">
           <div class="search-note">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <span>Reference patient: Aarav Sharma</span>
+            <span>Showing all registered patients from the live database</span>
           </div>
-          <input id="patientSearch" class="search-bar" type="text" placeholder="Search patient name: Aarav Sharma, Meera Joshi, Ishita Verma" />
+          <input id="patientSearch" class="search-bar" type="text" placeholder="Search patient name" />
         </div>
         <div id="resultGrid" class="result-grid" aria-live="polite"></div>
-        <div id="emptyState" class="empty-state" hidden>No patient matched this search.</div>
+        <div id="emptyState" class="empty-state" hidden>No real patient matched this search.</div>
       </section>
     </section>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../hospital_backend/hospital_patients.js"></script>
   <script>
     const searchInput = document.getElementById("patientSearch");
     const resultGrid = document.getElementById("resultGrid");
     const emptyState = document.getElementById("emptyState");
-    const patients = loadPatients();
+    let patients = [];
+
+    function renderPatientCards(rows) {
+      resultGrid.innerHTML = rows.map((patient) => `
+        <a class="patient-card" href="hospital_patient_details.html?id=${patient.id}">
+          <div class="patient-avatar"><i class="fa-solid fa-user"></i></div>
+          <div>
+            <h3>${patient.name}</h3>
+            <p>${patient.diagnosis}</p>
+          </div>
+          <div class="patient-meta">
+            <span><i class="fa-solid fa-cake-candles"></i>Age ${patient.age || "-"}</span>
+            <span><i class="fa-solid fa-droplet"></i>${patient.bloodGroup || "-"}</span>
+            <span><i class="fa-solid fa-phone"></i>${patient.phone || "-"}</span>
+          </div>
+        </a>
+      `).join("");
+    }
 
     function renderPatients(query) {
       const normalizedQuery = query.trim().toLowerCase();
@@ -98,62 +116,27 @@
       });
 
       if (!normalizedQuery) {
-        emptyState.hidden = true;
-        resultGrid.innerHTML = patients.map((patient) => `
-          <a class="patient-card" href="hospital_patient_details.html?id=${patient.id}">
-            <div class="patient-avatar"><i class="fa-solid fa-user"></i></div>
-            <div>
-              <h3>${patient.name}</h3>
-              <p>${patient.diagnosis}</p>
-            </div>
-            <div class="patient-meta">
-              <span><i class="fa-solid fa-cake-candles"></i>Age ${patient.age}</span>
-              <span><i class="fa-solid fa-droplet"></i>${patient.bloodGroup}</span>
-              <span><i class="fa-solid fa-phone"></i>${patient.phone}</span>
-            </div>
-          </a>
-        `).join("");
+        emptyState.hidden = patients.length > 0;
+        renderPatientCards(patients);
         return;
       }
 
       if (!filteredPatients.length) {
-        const generatedPatient = ensurePatientByName(query);
-        emptyState.hidden = true;
-        resultGrid.innerHTML = `
-          <a class="patient-card" href="hospital_patient_details.html?id=${generatedPatient.id}">
-            <div class="patient-avatar"><i class="fa-solid fa-user-plus"></i></div>
-            <div>
-              <h3>${generatedPatient.name}</h3>
-              <p>New demo patient profile created from your search.</p>
-            </div>
-            <div class="patient-meta">
-              <span><i class="fa-solid fa-cake-candles"></i>Age ${generatedPatient.age}</span>
-              <span><i class="fa-solid fa-droplet"></i>${generatedPatient.bloodGroup}</span>
-              <span><i class="fa-solid fa-phone"></i>${generatedPatient.phone}</span>
-            </div>
-          </a>
-        `;
+        resultGrid.innerHTML = "";
+        emptyState.hidden = false;
         return;
       }
 
       emptyState.hidden = true;
-      resultGrid.innerHTML = filteredPatients.map((patient) => `
-        <a class="patient-card" href="hospital_patient_details.html?id=${patient.id}">
-          <div class="patient-avatar"><i class="fa-solid fa-user"></i></div>
-          <div>
-            <h3>${patient.name}</h3>
-            <p>${patient.diagnosis}</p>
-          </div>
-          <div class="patient-meta">
-            <span><i class="fa-solid fa-cake-candles"></i>Age ${patient.age}</span>
-            <span><i class="fa-solid fa-droplet"></i>${patient.bloodGroup}</span>
-            <span><i class="fa-solid fa-phone"></i>${patient.phone}</span>
-          </div>
-        </a>
-      `).join("");
+      renderPatientCards(filteredPatients);
     }
 
-    renderPatients("");
+    async function initPatients() {
+      patients = await loadPatients();
+      renderPatients("");
+    }
+
+    initPatients();
     searchInput.addEventListener("input", function () {
       renderPatients(searchInput.value);
     });

@@ -113,9 +113,6 @@
       return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    const query = new URLSearchParams(window.location.search);
-    const patientId = query.get("id");
-    const patient = patientId ? getPatientById(patientId) : null;
     const pageTitle = document.getElementById("pageTitle");
     const pageSubtitle = document.getElementById("pageSubtitle");
     const prescriptionList = document.getElementById("prescriptionList");
@@ -123,6 +120,7 @@
     const prescriptionForm = document.getElementById("prescriptionForm");
     const formError = document.getElementById("formError");
     const backLink = document.getElementById("backLink");
+    let patient = null;
 
     function renderPrescriptions(prescriptions) {
       if (!prescriptions || prescriptions.length === 0) {
@@ -197,17 +195,24 @@
       renderPrescriptions(result.data || []);
     }
 
-    if (!patient) {
-      pageTitle.textContent = "Patient Not Found";
-      pageSubtitle.textContent = "The requested patient record could not be found.";
-      prescriptionForm.hidden = true;
-      backLink.href = "hospital_patients.html";
-    } else {
+    (async function () {
+      const query = new URLSearchParams(window.location.search);
+      const patientId = query.get("id");
+      patient = patientId ? await getPatientById(patientId) : null;
+
+      if (!patient) {
+        pageTitle.textContent = "Patient Not Found";
+        pageSubtitle.textContent = "The requested patient record could not be found.";
+        prescriptionForm.hidden = true;
+        backLink.href = "hospital_patients.html";
+        return;
+      }
+
       pageTitle.textContent = `${patient.name} Prescriptions`;
       pageSubtitle.textContent = "Current and historical prescriptions for this patient.";
       backLink.href = `hospital_patient_details.html?id=${patient.id}`;
       loadPrescriptions(patient);
-    }
+    })();
 
     prescriptionForm.addEventListener("submit", async function (event) {
       event.preventDefault();

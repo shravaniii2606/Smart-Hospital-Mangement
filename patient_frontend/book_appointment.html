@@ -180,6 +180,28 @@
         return String(value).padStart(2, "0");
       }
 
+      function compareAppointments(left, right) {
+        const leftDate = left?.appointment_date || "";
+        const rightDate = right?.appointment_date || "";
+        if (leftDate !== rightDate) {
+          return leftDate.localeCompare(rightDate);
+        }
+
+        const leftTime = left?.appointment_time || "";
+        const rightTime = right?.appointment_time || "";
+        if (leftTime !== rightTime) {
+          return leftTime.localeCompare(rightTime);
+        }
+
+        const leftToken = Number(left?.token || 0);
+        const rightToken = Number(right?.token || 0);
+        if (!Number.isNaN(leftToken) && !Number.isNaN(rightToken) && leftToken !== rightToken) {
+          return leftToken - rightToken;
+        }
+
+        return 0;
+      }
+
       function toLocalDateString(date) {
         return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
       }
@@ -251,6 +273,26 @@
         errorEl.hidden = !message;
       }
 
+      async function getNextTokenNumber() {
+        const { data, error } = await supabaseClient
+          .from("appointments")
+          .select("token, appointment_date, appointment_time")
+          .eq("doctor_id", selectedDoctor.doc_id)
+          .eq("appointment_date", dateInput.value);
+
+        if (error) {
+          throw error;
+        }
+
+        const sortedAppointments = (data || []).slice().sort(compareAppointments);
+        const maxToken = sortedAppointments.reduce((highest, appointment) => {
+          const value = Number(appointment.token);
+          return Number.isNaN(value) ? highest : Math.max(highest, value);
+        }, 0);
+
+        return String(maxToken + 1);
+      }
+
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
         showError("");
@@ -309,12 +351,21 @@
         }
 
         const patientName = profileResult.data.name || "Patient";
+        const patientEmail = profileResult.data.email || user.email || "";
 
-        const token = pad2(Math.floor(Math.random() * 90) + 10);
+        let token = "1";
+        try {
+          token = await getNextTokenNumber();
+        } catch (tokenError) {
+          showError(tokenError.message || "Unable to generate appointment token.");
+          return;
+        }
         tokenEl.textContent = token;
 
         const payload = {
           user_id: profileResult.data.user_id,
+          patient_name: patientName,
+          patient_email: patientEmail,
           doctor_id: selectedDoctor.doc_id,
           doctor_name: selectedDoctor.name || null,
           doctor_specialty: selectedDoctor.specialty || null,
