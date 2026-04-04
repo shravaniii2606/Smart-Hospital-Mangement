@@ -107,15 +107,13 @@
       return "rep-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
     }
 
-    const query = new URLSearchParams(window.location.search);
-    const patientId = query.get("id");
-    const patient = patientId ? getPatientById(patientId) : null;
     const pageTitle = document.getElementById("pageTitle");
     const pageSubtitle = document.getElementById("pageSubtitle");
     const reportList = document.getElementById("reportList");
     const reportForm = document.getElementById("reportForm");
     const formError = document.getElementById("formError");
     const backLink = document.getElementById("backLink");
+    let patient = null;
 
     async function renderReports(currentPatient) {
       const client = getSupabaseClient();
@@ -181,17 +179,24 @@
       }).join("");
     }
 
-    if (!patient) {
-      pageTitle.textContent = "Patient Not Found";
-      pageSubtitle.textContent = "The requested patient record could not be found.";
-      reportForm.hidden = true;
-      backLink.href = "hospital_patients.html";
-    } else {
+    (async function () {
+      const query = new URLSearchParams(window.location.search);
+      const patientId = query.get("id");
+      patient = patientId ? await getPatientById(patientId) : null;
+
+      if (!patient) {
+        pageTitle.textContent = "Patient Not Found";
+        pageSubtitle.textContent = "The requested patient record could not be found.";
+        reportForm.hidden = true;
+        backLink.href = "hospital_patients.html";
+        return;
+      }
+
       pageTitle.textContent = `${patient.name} Reports`;
       pageSubtitle.textContent = "Current and historical reports for this patient.";
       backLink.href = `hospital_patient_details.html?id=${patient.id}`;
       renderReports(patient);
-    }
+    })();
 
     reportForm.addEventListener("submit", async function (event) {
       event.preventDefault();

@@ -73,7 +73,29 @@ async function loadAppointmentsForDoctor(doctorId) {
   }
 
   console.debug(`Loaded ${data ? data.length : 0} appointments for doctor ${doctorId}`, data);
-  return data || [];
+  return (data || []).sort(compareAppointments);
+}
+
+function compareAppointments(left, right) {
+  const leftDate = left?.appointment_date || '';
+  const rightDate = right?.appointment_date || '';
+  if (leftDate !== rightDate) {
+    return leftDate.localeCompare(rightDate);
+  }
+
+  const leftTime = left?.appointment_time || '';
+  const rightTime = right?.appointment_time || '';
+  if (leftTime !== rightTime) {
+    return leftTime.localeCompare(rightTime);
+  }
+
+  const leftToken = Number(left?.token || 0);
+  const rightToken = Number(right?.token || 0);
+  if (!Number.isNaN(leftToken) && !Number.isNaN(rightToken) && leftToken !== rightToken) {
+    return leftToken - rightToken;
+  }
+
+  return 0;
 }
 
 async function updateAppointmentStatus(appointmentId, status) {

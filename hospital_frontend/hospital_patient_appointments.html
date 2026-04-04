@@ -60,35 +60,77 @@
       </section>
     </section>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../hospital_backend/hospital_patients.js"></script>
   <script>
-    const query = new URLSearchParams(window.location.search);
-    const patientId = query.get("id");
-    const patient = patientId ? getPatientById(patientId) : null;
-    const appointmentList = document.getElementById("appointmentList");
-    const backLink = document.getElementById("backLink");
+    function parseTimeToMinutes(value) {
+      if (!value) return Number.MAX_SAFE_INTEGER;
+      const cleaned = value.trim().toLowerCase();
+      const match = cleaned.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
+      if (!match) return Number.MAX_SAFE_INTEGER;
 
-    if (!patient) {
-      document.getElementById("pageTitle").textContent = "Patient Not Found";
-      document.getElementById("pageSubtitle").textContent = "The requested patient record could not be found.";
-      appointmentList.innerHTML = "";
-      backLink.href = "hospital_patients.html";
-    } else {
+      let hours = Number(match[1]);
+      const minutes = Number(match[2] || "0");
+      const suffix = match[3];
+
+      if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+        return Number.MAX_SAFE_INTEGER;
+      }
+
+      if (suffix === "pm" && hours < 12) hours += 12;
+      if (suffix === "am" && hours === 12) hours = 0;
+
+      return (hours * 60) + minutes;
+    }
+
+    function compareAppointments(left, right) {
+      const leftDate = left?.date || "";
+      const rightDate = right?.date || "";
+      if (leftDate !== rightDate) {
+        return leftDate.localeCompare(rightDate);
+      }
+
+      const leftMinutes = parseTimeToMinutes(left?.time);
+      const rightMinutes = parseTimeToMinutes(right?.time);
+      if (leftMinutes !== rightMinutes) {
+        return leftMinutes - rightMinutes;
+      }
+
+      return 0;
+    }
+
+    (async function () {
+      const query = new URLSearchParams(window.location.search);
+      const patientId = query.get("id");
+      const patient = patientId ? await getPatientById(patientId) : null;
+      const appointmentList = document.getElementById("appointmentList");
+      const backLink = document.getElementById("backLink");
+
+      if (!patient) {
+        document.getElementById("pageTitle").textContent = "Patient Not Found";
+        document.getElementById("pageSubtitle").textContent = "The requested patient record could not be found.";
+        appointmentList.innerHTML = "";
+        backLink.href = "hospital_patients.html";
+        return;
+      }
+
       document.getElementById("pageTitle").textContent = `${patient.name} Appointments`;
       document.getElementById("pageSubtitle").textContent = "Booked and upcoming appointments for this patient.";
       backLink.href = `hospital_patient_details.html?id=${patient.id}`;
-      appointmentList.innerHTML = patient.appointments.map((appointment) => `
+      const sortedAppointments = (patient.appointments || []).slice().sort(compareAppointments);
+      appointmentList.innerHTML = sortedAppointments.map((appointment) => `
         <article class="appointment-card">
           <h3>${appointment.department}</h3>
           <div class="appointment-meta">
             <span><i class="fa-solid fa-calendar-day"></i>${appointment.date}</span>
             <span><i class="fa-regular fa-clock"></i>${appointment.time}</span>
             <span><i class="fa-solid fa-user-doctor"></i>${appointment.doctor}</span>
+            <span><i class="fa-solid fa-ticket"></i>Token ${appointment.token || "-"}</span>
           </div>
           <span class="status-chip">${appointment.status}</span>
         </article>
       `).join("");
-    }
+    })();
   </script>
 </body>
 </html>
