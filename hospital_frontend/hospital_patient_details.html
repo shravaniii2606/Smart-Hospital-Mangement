@@ -29,7 +29,7 @@
     .detail-box { border:1px solid var(--line); border-radius:20px; padding:18px; background:linear-gradient(180deg, #fff, #f8fbff); }
     .detail-box span { display:block; color:var(--muted); font-size:13px; margin-bottom:6px; }
     .detail-box strong { line-height:1.6; }
-    .action-grid { margin-top:22px; display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px; }
+    .action-grid { margin-top:22px; display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:16px; }
     .action-card { text-decoration:none; color:inherit; border:1px solid var(--line); border-radius:22px; padding:22px; background:linear-gradient(135deg, rgba(11,78,162,.06), rgba(23,162,184,.12)); display:grid; gap:12px; }
     .action-card i { font-size:24px; color:var(--blue); }
     .action-card h3 { font-size:22px; }
@@ -85,6 +85,11 @@
             <h3>Reports</h3>
             <p>View current and previous reports, and add a new report file.</p>
           </a>
+          <a id="prescriptionsCard" class="action-card" href="#">
+            <i class="fa-solid fa-prescription-bottle-medical"></i>
+            <h3>Prescriptions</h3>
+            <p>Add a doctor prescription and let the patient view it like reports.</p>
+          </a>
         </div>
       </section>
       <section id="missingCard" class="detail-card missing-card">
@@ -118,6 +123,7 @@
       document.getElementById("patientId").textContent = patient.id;
       document.getElementById("appointmentsCard").href = `hospital_patient_appointments.html?id=${patient.id}`;
       document.getElementById("reportsCard").href = `hospital_patient_reports.html?id=${patient.id}`;
+      document.getElementById("prescriptionsCard").href = `hospital_patient_prescriptions.html?id=${patient.id}`;
     }
   </script>
 </body>
