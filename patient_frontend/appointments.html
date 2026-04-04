@@ -45,6 +45,10 @@
               <span><i class="fa-solid fa-file-medical"></i></span>
               <small>Reports</small>
             </a>
+            <a class="hs-side-link" href="prescriptions.html">
+              <span><i class="fa-solid fa-prescription-bottle-medical"></i></span>
+              <small>Prescriptions</small>
+            </a>
           </nav>
 
           <section class="hs-main">
@@ -191,17 +195,24 @@
       async function loadAppointments() {
         const client = getSupabaseClient();
         if (!client) {
+          console.error("DEBUG: Supabase client not loaded");
           renderAppointments([]);
           return;
         }
 
         const userResult = await client.auth.getUser();
+        console.log("DEBUG: Auth result error:", userResult.error);
+        console.log("DEBUG: Auth result data:", userResult.data?.user?.id);
+        
         if (userResult.error || !userResult.data || !userResult.data.user) {
+          console.error("DEBUG: User not authenticated", userResult.error);
           renderAppointments([]);
           return;
         }
 
         const userId = userResult.data.user.id;
+        console.log("DEBUG: Fetching appointments for userId:", userId);
+        
         const { data, error } = await client
           .from("appointments")
           .select("*")
@@ -209,7 +220,12 @@
           .order("appointment_date", { ascending: true })
           .order("appointment_time", { ascending: true });
 
+        console.log("DEBUG: Query error:", error);
+        console.log("DEBUG: Query data count:", data?.length || 0);
+        console.log("DEBUG: Query data:", data);
+
         if (error) {
+          console.error("DEBUG: Appointments query failed:", error);
           renderAppointments([]);
           return;
         }

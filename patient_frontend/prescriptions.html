@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prescriptions - HealthSphere</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="single-wrap">
+    <article class="phone hs-home">
+      <div class="body">
+        <div class="hs-layout">
+          <nav class="hs-sidebar" aria-label="Home sections">
+            <a class="hs-side-link" href="patient_home.html">
+              <span><i class="fa-solid fa-house"></i></span>
+              <small>Home</small>
+            </a>
+            <a class="hs-side-link" href="ai.html">
+              <span><i class="fa-solid fa-robot"></i></span>
+              <small>AI Chatbot</small>
+            </a>
+            <a class="hs-side-link" href="doctors.html">
+              <span><i class="fa-solid fa-user-doctor"></i></span>
+              <small>Find Doctors</small>
+            </a>
+            <a class="hs-side-link" href="bed_availability.html">
+              <span><i class="fa-solid fa-bed"></i></span>
+              <small>Bed Availability</small>
+            </a>
+            <a class="hs-side-link" href="appointments.html">
+              <span><i class="fa-solid fa-calendar-check"></i></span>
+              <small>My Appointments</small>
+            </a>
+            <a class="hs-side-link" href="emergency.html">
+              <span><i class="fa-solid fa-truck-medical"></i></span>
+              <small>Emergency</small>
+            </a>
+            <a class="hs-side-link" href="profile.html">
+              <span><i class="fa-regular fa-user"></i></span>
+              <small>Profile</small>
+            </a>
+            <a class="hs-side-link" href="reports.html">
+              <span><i class="fa-solid fa-file-medical"></i></span>
+              <small>Reports</small>
+            </a>
+            <a class="hs-side-link active" href="prescriptions.html">
+              <span><i class="fa-solid fa-prescription-bottle-medical"></i></span>
+              <small>Prescriptions</small>
+            </a>
+          </nav>
+
+          <section class="hs-main">
+            <div class="hs-brand-row">
+              <div class="hs-brand-logo"><i class="fa-solid fa-heart-pulse"></i></div>
+              <div class="hs-brand-name">HealthSphere</div>
+            </div>
+
+            <header class="hs-greet-row">
+              <div>
+                <p class="hs-hello">Section</p>
+                <h2 class="hs-name">Prescriptions</h2>
+              </div>
+            </header>
+
+            <section class="hs-location-card">
+              <div class="hs-location-row">
+                <div class="hs-location-icon"><i class="fa-solid fa-prescription-bottle-medical"></i></div>
+                <div>
+                  <h4>Doctor Prescriptions</h4>
+                  <p>Your doctor-added prescriptions will appear here.</p>
+                </div>
+              </div>
+              <div id="prescriptionsList" class="hs-recent-list" style="margin-top: 12px;"></div>
+              <div id="prescriptionsEmpty" class="hs-recent-empty" style="display: none;">
+                No prescriptions found.
+              </div>
+            </section>
+          </section>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    (function () {
+      const SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
+
+      function getSupabaseClient() {
+        if (typeof supabase === "undefined" || !supabase.createClient) {
+          return null;
+        }
+        return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+
+      const listEl = document.getElementById("prescriptionsList");
+      const emptyEl = document.getElementById("prescriptionsEmpty");
+
+      function renderPrescriptions(prescriptions) {
+        if (!prescriptions || prescriptions.length === 0) {
+          listEl.innerHTML = "";
+          emptyEl.style.display = "block";
+          return;
+        }
+
+        emptyEl.style.display = "none";
+        listEl.innerHTML = prescriptions.map((prescription) => `
+          <div class="appt-doc-card">
+            <div class="doc-avatar"><i class="fa-solid fa-prescription-bottle-medical"></i></div>
+            <div class="doc-content">
+              <div class="appt-head-row">
+                <h3>${prescription.title || "Prescription"}</h3>
+                <small>${prescription.date || prescription.created_at?.split("T")[0] || "-"}</small>
+              </div>
+              <p class="appt-location">${prescription.notes || "No additional notes provided."}</p>
+              <div class="appt-detail-grid">
+                <small><strong>Doctor:</strong> ${prescription.doctor_name || "-"}</small>
+                <small><strong>Medicines:</strong> ${prescription.medicines || "-"}</small>
+              </div>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      async function loadPrescriptions() {
+        const client = getSupabaseClient();
+        if (!client) {
+          renderPrescriptions([]);
+          return;
+        }
+
+        const userResult = await client.auth.getUser();
+        if (userResult.error || !userResult.data || !userResult.data.user) {
+          console.error("User not authenticated", userResult.error);
+          renderPrescriptions([]);
+          return;
+        }
+
+        const result = await client
+          .from("prescriptions")
+          .select("*")
+          .eq("user_id", userResult.data.user.id)
+          .order("created_at", { ascending: false });
+
+        if (result.error) {
+          console.error("Prescriptions query failed:", result.error);
+          renderPrescriptions([]);
+          return;
+        }
+
+        renderPrescriptions(result.data || []);
+      }
+
+      loadPrescriptions();
+    })();
+  </script>
+</body>
+</html>
