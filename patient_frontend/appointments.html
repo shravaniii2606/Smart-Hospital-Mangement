@@ -148,7 +148,16 @@
       }
 
       function renderAppointments(rows) {
-        const filteredRows = getFilteredAppointments(rows);
+        const filteredRows = getFilteredAppointments(rows).slice().sort((a, b) => {
+          const dateA = a.appointment_date || "";
+          const dateB = b.appointment_date || "";
+          if (dateA !== dateB) {
+            return dateB.localeCompare(dateA);
+          }
+          const timeA = a.appointment_time || "";
+          const timeB = b.appointment_time || "";
+          return timeB.localeCompare(timeA);
+        });
         if (!filteredRows || filteredRows.length === 0) {
           listEl.innerHTML = "";
           emptyEl.style.display = "block";
@@ -173,6 +182,7 @@
                   <h3>${appt.doctor_name || "Doctor"}</h3>
                   <span class="appt-status-badge ${badgeClass}">${badgeText}</span>
                 </div>
+                <div class="appt-token-badge">Token <span>${appt.token || "-"}</span></div>
                 <p class="appt-location">${appt.doctor_specialty || "Specialist"}</p>
                 <div class="appt-detail-grid">
                   <small><strong>Date:</strong> ${appt.appointment_date || "-"}</small>
@@ -206,8 +216,8 @@
           .from("appointments")
           .select("*")
           .eq("user_id", userId)
-          .order("appointment_date", { ascending: true })
-          .order("appointment_time", { ascending: true });
+          .order("appointment_date", { ascending: false })
+          .order("appointment_time", { ascending: false });
 
         if (error) {
           renderAppointments([]);
