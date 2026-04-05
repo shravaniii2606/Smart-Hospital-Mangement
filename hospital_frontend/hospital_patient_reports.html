@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --navy:#0f2b63; --blue:#0b4ea2; --sky:#17a2b8; --text:#17233d; --muted:#5d6f8f; --line:#dce6f2; }
+    :root { --navy:#0f2b63; --blue:#0b4ea2; --sky:#17a2b8; --text:#17233d; --muted:#5d6f8f; --line:#dce6f2; --danger:#c53b3b; --success:#177245; }
     body { min-height:100vh; font-family:Poppins, Arial, sans-serif; background:radial-gradient(circle at top left, rgba(23,162,184,.15), transparent 22%), linear-gradient(180deg, #f7fbff 0%, #edf4fb 100%); color:var(--text); padding:24px; }
     .dashboard { max-width:1320px; margin:0 auto; display:flex; gap:18px; align-items:flex-start; min-height:calc(100vh - 48px); }
     .sidebar-shell { width:138px; flex:0 0 138px; background:linear-gradient(180deg, var(--navy), #14346b 56%, #0c204f); border-radius:26px; box-shadow:0 18px 42px rgba(15,43,99,.18); padding:16px 12px; }
@@ -29,6 +29,7 @@
     .report-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
     .report-date { color:#4d638a; font-size:13px; font-weight:700; }
     .report-link { display:inline-flex; width:max-content; align-items:center; gap:8px; text-decoration:none; color:var(--blue); background:#eef4ff; border:1px solid #cfe0f7; border-radius:14px; padding:10px 14px; font-weight:700; }
+    .empty-state { margin-top:22px; border:1px dashed var(--line); border-radius:20px; padding:18px; color:var(--muted); background:#fbfdff; }
     .upload-form { margin-top:10px; display:grid; gap:14px; }
     .field { display:grid; gap:8px; }
     label { font-size:14px; font-weight:700; }
@@ -36,7 +37,11 @@
     .input:focus, textarea:focus { border-color:var(--blue); box-shadow:0 0 0 4px rgba(11,78,162,.12); }
     textarea { resize:vertical; min-height:110px; }
     .upload-button { border:0; border-radius:16px; padding:14px 18px; font-size:15px; font-weight:700; cursor:pointer; color:#fff; background:linear-gradient(135deg, var(--blue), var(--sky)); box-shadow:0 14px 24px rgba(11,78,162,.2); }
-    .error { min-height:20px; color:#c53b3b; font-size:13px; }
+    .upload-button:disabled { opacity:.7; cursor:wait; }
+    .status { min-height:20px; font-size:13px; }
+    .status.error { color:var(--danger); }
+    .status.success { color:var(--success); }
+    .meta { margin-top:8px; font-size:12px; color:var(--muted); }
     .back-link { display:inline-flex; margin-top:18px; text-decoration:none; color:var(--blue); background:#eef4ff; border:1px solid #cfe0f7; border-radius:16px; padding:14px 18px; font-weight:700; gap:10px; align-items:center; }
     @media (max-width:980px) { .dashboard { display:grid; } .sidebar-shell { width:100%; } .sidebar { grid-template-columns:repeat(3, minmax(0, 1fr)); } .page-grid { grid-template-columns:1fr; } }
     @media (max-width:640px) { body { padding:12px; } .sidebar { grid-template-columns:repeat(2, minmax(0, 1fr)); } .card { padding:20px; } }
@@ -65,11 +70,12 @@
           <h1 id="pageTitle">Patient Reports</h1>
           <p id="pageSubtitle">All current and previous reports for this patient.</p>
           <div id="reportList" class="report-list"></div>
+          <div id="reportEmpty" class="empty-state" hidden>No reports found for this patient yet.</div>
           <a id="backLink" class="back-link" href="#"><i class="fa-solid fa-arrow-left"></i><span>Back to Patient Details</span></a>
         </article>
         <article class="card">
           <h2>Add Report</h2>
-          <p>Upload a new report file such as PNG, JPEG, PDF, or similar supported formats for this patient.</p>
+          <p>Upload a report file for this patient. Small files work best here.</p>
           <form id="reportForm" class="upload-form" novalidate>
             <div class="field">
               <label for="reportTitle">Report Title</label>
@@ -82,9 +88,10 @@
             <div class="field">
               <label for="reportFile">Upload File</label>
               <input id="reportFile" class="input" type="file" accept=".png,.jpg,.jpeg,.pdf,.webp,.gif" required />
+              <p class="meta">Accepted: PNG, JPG, JPEG, PDF, WEBP, GIF. Max 5 MB.</p>
             </div>
-            <p id="formError" class="error" aria-live="polite"></p>
-            <button class="upload-button" type="submit">Add Report</button>
+            <p id="reportStatus" class="status" aria-live="polite"></p>
+            <button id="reportSubmit" class="upload-button" type="submit">Add Report</button>
           </form>
         </article>
       </section>
@@ -93,187 +100,193 @@
   <script src="../hospital_backend/hospital_patients.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
+    (function () {
+      const SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
+      const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-    function getSupabaseClient() {
-      if (typeof supabase === "undefined" || !supabase.createClient) {
-        return null;
-      }
-      return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
-
-    function createReportId() {
-      return "rep-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
-    }
-
-    const pageTitle = document.getElementById("pageTitle");
-    const pageSubtitle = document.getElementById("pageSubtitle");
-    const reportList = document.getElementById("reportList");
-    const reportForm = document.getElementById("reportForm");
-    const formError = document.getElementById("formError");
-    const backLink = document.getElementById("backLink");
-    let patient = null;
-
-    async function renderReports(currentPatient) {
-      const client = getSupabaseClient();
-      if (!client || !currentPatient || !currentPatient.email) {
-        reportList.innerHTML = "";
-        return;
+      function getSupabaseClient() {
+        if (typeof supabase === "undefined" || !supabase.createClient) {
+          return null;
+        }
+        return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
 
-      // Find the Supabase user_id for this patient by email
-      const profileResult = await client
-        .from("patient_profile")
-        .select("user_id")
-        .eq("email", currentPatient.email)
-        .maybeSingle();
-
-      console.log("Looking for patient profile:", currentPatient.email);
-      console.log("Profile query result:", profileResult);
-
-      if (profileResult.error || !profileResult.data) {
-        console.error("Could not find Supabase user for patient:", currentPatient.email);
-        reportList.innerHTML = "";
-        return;
+      function createUuid() {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") {
+          return window.crypto.randomUUID();
+        }
+        return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, function (char) {
+          const random = crypto.getRandomValues(new Uint8Array(1))[0];
+          return (Number(char) ^ (random & 15) >> (Number(char) / 4)).toString(16);
+        });
       }
 
-      const userId = profileResult.data.user_id;
-      console.log("Found user_id:", userId);
-
-      // Fetch reports from Supabase
-      const reportsResult = await client
-        .from("reports")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-
-      console.log("Reports query for user", userId, ":", reportsResult);
-
-      if (reportsResult.error) {
-        console.error("Error fetching reports:", reportsResult.error);
-        reportList.innerHTML = "";
-        return;
+      function normalizeEmail(value) {
+        return String(value || "").trim().toLowerCase();
       }
 
-      const reports = reportsResult.data || [];
-      console.log("Found reports:", reports);
-
-      reportList.innerHTML = reports.map((report) => {
-        const fileLink = report.file_data
-          ? `<a class="report-link" href="${report.file_data}" download="${report.file_name}"><i class="fa-solid fa-paperclip"></i><span>${report.file_name}</span></a>`
-          : `<span class="report-link"><i class="fa-regular fa-file"></i><span>${report.file_name || 'No file'}</span></span>`;
-
-        return `
-          <article class="report-card">
-            <div class="report-head">
-              <div>
-                <h3>${report.title}</h3>
-                <p>${report.summary}</p>
-              </div>
-              <span class="report-date">${report.date || report.created_at?.split('T')[0] || "-"}</span>
-            </div>
-            ${fileLink}
-          </article>
-        `;
-      }).join("");
-    }
-
-    (async function () {
-      const query = new URLSearchParams(window.location.search);
-      const patientId = query.get("id");
-      patient = patientId ? await getPatientById(patientId) : null;
-
-      if (!patient) {
-        pageTitle.textContent = "Patient Not Found";
-        pageSubtitle.textContent = "The requested patient record could not be found.";
-        reportForm.hidden = true;
-        backLink.href = "hospital_patients.html";
-        return;
+      function setStatus(message, type) {
+        const statusEl = document.getElementById("reportStatus");
+        statusEl.textContent = message || "";
+        statusEl.className = "status" + (type ? " " + type : "");
       }
 
-      pageTitle.textContent = `${patient.name} Reports`;
-      pageSubtitle.textContent = "Current and historical reports for this patient.";
-      backLink.href = `hospital_patient_details.html?id=${patient.id}`;
-      renderReports(patient);
-    })();
+      function renderReports(reports) {
+        const listEl = document.getElementById("reportList");
+        const emptyEl = document.getElementById("reportEmpty");
 
-    reportForm.addEventListener("submit", async function (event) {
-      event.preventDefault();
-
-      if (!patient) {
-        return;
-      }
-
-      const reportTitle = document.getElementById("reportTitle").value.trim();
-      const reportSummary = document.getElementById("reportSummary").value.trim();
-      const reportFile = document.getElementById("reportFile").files[0];
-
-      if (!reportTitle || !reportSummary || !reportFile) {
-        formError.textContent = "Please fill all report fields and choose a file.";
-        return;
-      }
-
-      formError.textContent = "";
-
-      const client = getSupabaseClient();
-      if (!client) {
-        formError.textContent = "Supabase client not available.";
-        return;
-      }
-
-      // Find the Supabase user_id for this patient
-      const profileResult = await client
-        .from("patient_profile")
-        .select("user_id")
-        .eq("email", patient.email)
-        .maybeSingle();
-
-      if (profileResult.error || !profileResult.data) {
-        formError.textContent = "Could not find patient profile in database.";
-        return;
-      }
-
-      const userId = profileResult.data.user_id;
-
-      // Read file as base64
-      const reader = new FileReader();
-      reader.onload = async function () {
-        const reportData = {
-          user_id: userId,
-          title: reportTitle,
-          summary: reportSummary,
-          file_name: reportFile.name,
-          file_type: reportFile.type,
-          file_data: reader.result,
-          file_size: reportFile.size,
-          date: new Date().toISOString().slice(0, 10)
-        };
-
-        console.log("Inserting report:", reportData);
-
-        const insertResult = await client
-          .from("reports")
-          .insert(reportData);
-
-        console.log("Insert result:", insertResult);
-
-        if (insertResult.error) {
-          formError.textContent = insertResult.error.message || "Failed to save report.";
+        if (!reports.length) {
+          listEl.innerHTML = "";
+          emptyEl.hidden = false;
           return;
         }
 
-        // Refresh the reports list
-        await renderReports(patient);
-        reportForm.reset();
-      };
+        emptyEl.hidden = true;
+        listEl.innerHTML = reports.map(function (report) {
+          const fileLink = report.file_data
+            ? `<a class="report-link" href="${report.file_data}" download="${report.file_name || "report"}"><i class="fa-solid fa-paperclip"></i><span>${report.file_name || "Open file"}</span></a>`
+            : `<span class="report-link"><i class="fa-regular fa-file"></i><span>${report.file_name || "No file"}</span></span>`;
 
-      reader.onerror = function () {
-        formError.textContent = "Unable to read the selected report file.";
-      };
+          return `
+            <article class="report-card">
+              <div class="report-head">
+                <div>
+                  <h3>${report.title || "Report"}</h3>
+                  <p>${report.summary || "No summary available."}</p>
+                </div>
+                <span class="report-date">${report.date || (report.created_at ? report.created_at.split("T")[0] : "-")}</span>
+              </div>
+              ${fileLink}
+            </article>
+          `;
+        }).join("");
+      }
 
-      reader.readAsDataURL(reportFile);
-    });
+      async function fetchReports(client, patient) {
+        const patientEmail = normalizeEmail(patient.email);
+        if (!patientEmail) {
+          return [];
+        }
+
+        const emailResult = await client
+          .from("reports")
+          .select("*")
+          .ilike("patient_email", patientEmail)
+          .order("created_at", { ascending: false });
+
+        if (emailResult.error) {
+          console.error("Failed to load reports:", emailResult.error);
+          return [];
+        }
+
+        return emailResult.data || [];
+      }
+
+      async function readFileAsDataUrl(file) {
+        return await new Promise(function (resolve, reject) {
+          const reader = new FileReader();
+          reader.onload = function () { resolve(reader.result); };
+          reader.onerror = function () { reject(new Error("file-read-failed")); };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function init() {
+        const client = getSupabaseClient();
+        if (!client) {
+          setStatus("Supabase client not available.", "error");
+          return;
+        }
+
+        const query = new URLSearchParams(window.location.search);
+        const patientId = query.get("id");
+        const patient = patientId ? await getPatientById(patientId) : null;
+        const formEl = document.getElementById("reportForm");
+        const submitEl = document.getElementById("reportSubmit");
+
+        if (!patient) {
+          document.getElementById("pageTitle").textContent = "Patient Not Found";
+          document.getElementById("pageSubtitle").textContent = "The requested patient record could not be found.";
+          document.getElementById("backLink").href = "hospital_patients.html";
+          formEl.hidden = true;
+          return;
+        }
+
+        document.getElementById("pageTitle").textContent = patient.name + " Reports";
+        document.getElementById("pageSubtitle").textContent = "Current and historical reports for this patient.";
+        document.getElementById("backLink").href = "hospital_patient_details.html?id=" + patient.id;
+
+        async function refreshReports() {
+          const reports = await fetchReports(client, patient);
+          renderReports(reports);
+        }
+
+        await refreshReports();
+
+        formEl.addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const title = document.getElementById("reportTitle").value.trim();
+          const summary = document.getElementById("reportSummary").value.trim();
+          const file = document.getElementById("reportFile").files[0];
+          const patientEmail = normalizeEmail(patient.email);
+
+          if (!title || !summary || !file) {
+            setStatus("Please fill all report fields and choose a file.", "error");
+            return;
+          }
+
+          if (!patientEmail) {
+            setStatus("Patient email is missing.", "error");
+            return;
+          }
+
+          if (file.size > MAX_FILE_SIZE) {
+            setStatus("Please upload a report smaller than 5 MB.", "error");
+            return;
+          }
+
+          submitEl.disabled = true;
+          submitEl.textContent = "Saving...";
+          setStatus("", "");
+
+          try {
+            const fileData = await readFileAsDataUrl(file);
+            const insertResult = await client
+              .from("reports")
+              .insert({
+                id: createUuid(),
+                patient_email: patientEmail,
+                title: title,
+                summary: summary,
+                file_name: file.name,
+                file_type: file.type || null,
+                file_data: fileData,
+                file_size: file.size,
+                date: new Date().toISOString().slice(0, 10)
+              })
+              .select();
+
+            if (insertResult.error || !insertResult.data || !insertResult.data.length) {
+              throw new Error(insertResult.error ? insertResult.error.message : "Failed to save report.");
+            }
+
+            formEl.reset();
+            setStatus("Report saved successfully.", "success");
+            await refreshReports();
+          } catch (error) {
+            console.error("Report save failed:", error);
+            setStatus(error.message || "Failed to save report.", "error");
+          } finally {
+            submitEl.disabled = false;
+            submitEl.textContent = "Add Report";
+          }
+        });
+      }
+
+      init();
+    })();
   </script>
 </body>
 </html>

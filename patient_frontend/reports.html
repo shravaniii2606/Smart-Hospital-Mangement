@@ -13,42 +13,15 @@
       <div class="body">
         <div class="hs-layout">
           <nav class="hs-sidebar" aria-label="Home sections">
-            <a class="hs-side-link" href="patient_home.html">
-              <span><i class="fa-solid fa-house"></i></span>
-              <small>Home</small>
-            </a>
-            <a class="hs-side-link" href="ai.html">
-              <span><i class="fa-solid fa-robot"></i></span>
-              <small>AI Chatbot</small>
-            </a>
-            <a class="hs-side-link" href="doctors.html">
-              <span><i class="fa-solid fa-user-doctor"></i></span>
-              <small>Find Doctors</small>
-            </a>
-            <a class="hs-side-link" href="bed_availability.html">
-              <span><i class="fa-solid fa-bed"></i></span>
-              <small>Bed Availability</small>
-            </a>
-            <a class="hs-side-link" href="appointments.html">
-              <span><i class="fa-solid fa-calendar-check"></i></span>
-              <small>My Appointments</small>
-            </a>
-            <a class="hs-side-link" href="emergency.html">
-              <span><i class="fa-solid fa-truck-medical"></i></span>
-              <small>Emergency</small>
-            </a>
-            <a class="hs-side-link" href="profile.html">
-              <span><i class="fa-regular fa-user"></i></span>
-              <small>Profile</small>
-            </a>
-            <a class="hs-side-link active" href="reports.html">
-              <span><i class="fa-solid fa-file-medical"></i></span>
-              <small>Reports</small>
-            </a>
-            <a class="hs-side-link" href="prescriptions.html">
-              <span><i class="fa-solid fa-prescription-bottle-medical"></i></span>
-              <small>Prescriptions</small>
-            </a>
+            <a class="hs-side-link" href="patient_home.html"><span><i class="fa-solid fa-house"></i></span><small>Home</small></a>
+            <a class="hs-side-link" href="ai.html"><span><i class="fa-solid fa-robot"></i></span><small>AI Chatbot</small></a>
+            <a class="hs-side-link" href="doctors.html"><span><i class="fa-solid fa-user-doctor"></i></span><small>Find Doctors</small></a>
+            <a class="hs-side-link" href="bed_availability.html"><span><i class="fa-solid fa-bed"></i></span><small>Bed Availability</small></a>
+            <a class="hs-side-link" href="appointments.html"><span><i class="fa-solid fa-calendar-check"></i></span><small>My Appointments</small></a>
+            <a class="hs-side-link" href="emergency.html"><span><i class="fa-solid fa-truck-medical"></i></span><small>Emergency</small></a>
+            <a class="hs-side-link" href="profile.html"><span><i class="fa-regular fa-user"></i></span><small>Profile</small></a>
+            <a class="hs-side-link active" href="reports.html"><span><i class="fa-solid fa-file-medical"></i></span><small>Reports</small></a>
+            <a class="hs-side-link" href="prescriptions.html"><span><i class="fa-solid fa-prescription-bottle-medical"></i></span><small>Prescriptions</small></a>
           </nav>
 
           <section class="hs-main">
@@ -69,14 +42,16 @@
                 <div class="hs-location-icon"><i class="fa-solid fa-file-medical"></i></div>
                 <div>
                   <h4>Medical Reports</h4>
-                  <p>Your uploaded medical reports will appear here.</p>
+                  <p>Your hospital-uploaded reports will appear here.</p>
                 </div>
               </div>
               <div id="reportsList" class="hs-recent-list" style="margin-top: 12px;"></div>
-              <div id="reportsEmpty" class="hs-recent-empty" style="display: none;">
-                No reports found.
-              </div>
+              <div id="reportsEmpty" class="hs-recent-empty" style="display: none;">No reports found.</div>
             </section>
+          </section>
+        </div>
+      </div>
+    </article>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -92,38 +67,42 @@
         return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
 
-      const listEl = document.getElementById("reportsList");
-      const emptyEl = document.getElementById("reportsEmpty");
+      function normalizeEmail(value) {
+        return String(value || "").trim().toLowerCase();
+      }
 
       function renderReports(reports) {
-        if (!reports || reports.length === 0) {
+        const listEl = document.getElementById("reportsList");
+        const emptyEl = document.getElementById("reportsEmpty");
+
+        if (!reports.length) {
           listEl.innerHTML = "";
           emptyEl.style.display = "block";
           return;
         }
 
         emptyEl.style.display = "none";
-        listEl.innerHTML = reports.map((report) => {
-          const fileIcon = report.file_type?.startsWith('image/') ? 'fa-file-image' : 'fa-file-pdf';
-          const viewButton = report.file_url || report.file_data
-            ? `<button class="btn-mini btn-primary" type="button" data-view-id="${report.id}">View</button>`
-            : '';
-          
+        listEl.innerHTML = reports.map(function (report) {
+          const icon = report.file_type && report.file_type.indexOf("image/") === 0 ? "fa-file-image" : "fa-file-pdf";
+          const action = report.file_data
+            ? `<button class="btn-mini btn-primary" type="button" data-view="${report.id}">View</button>`
+            : "";
+
           return `
             <div class="appt-doc-card">
-              <div class="doc-avatar"><i class="fa-solid ${fileIcon}"></i></div>
+              <div class="doc-avatar"><i class="fa-solid ${icon}"></i></div>
               <div class="doc-content">
                 <div class="appt-head-row">
                   <h3>${report.title || "Medical Report"}</h3>
-                  <small>${report.date || report.created_at?.split('T')[0] || "-"}</small>
+                  <small>${report.date || (report.created_at ? report.created_at.split("T")[0] : "-")}</small>
                 </div>
-                <p class="appt-location">${report.summary || "No summary available"}</p>
+                <p class="appt-location">${report.summary || "No summary available."}</p>
                 <div class="appt-detail-grid">
                   <small><strong>Type:</strong> ${report.file_type || "Unknown"}</small>
-                  <small><strong>Size:</strong> ${report.file_size ? `${Math.round(report.file_size / 1024)} KB` : "Unknown"}</small>
+                  <small><strong>Size:</strong> ${report.file_size ? Math.round(report.file_size / 1024) + " KB" : "Unknown"}</small>
                 </div>
               </div>
-              ${viewButton}
+              ${action}
             </div>
           `;
         }).join("");
@@ -132,104 +111,56 @@
       async function loadReports() {
         const client = getSupabaseClient();
         if (!client) {
-          console.error("Supabase client not loaded");
           renderReports([]);
           return;
         }
 
         const userResult = await client.auth.getUser();
         if (userResult.error || !userResult.data || !userResult.data.user) {
-          console.error("User not authenticated", userResult.error);
           renderReports([]);
           return;
         }
 
-        const userId = userResult.data.user.id;
-        console.log("Loading reports for user:", userId);
-        
-        const { data, error } = await client
+        const patientEmail = normalizeEmail(userResult.data.user.email);
+        if (!patientEmail) {
+          renderReports([]);
+          return;
+        }
+
+        const result = await client
           .from("reports")
           .select("*")
-          .eq("user_id", userId)
+          .ilike("patient_email", patientEmail)
           .order("created_at", { ascending: false });
 
-        console.log("Reports query result:", { data, error });
-
-        if (error) {
-          console.error("Reports query failed:", error);
+        if (result.error) {
+          console.error("Failed to load reports:", result.error);
           renderReports([]);
           return;
         }
 
-        renderReports(data || []);
+        renderReports(result.data || []);
       }
 
-      listEl.addEventListener("click", async (event) => {
-        const target = event.target.closest("[data-view-id]");
-        if (!target) return;
-        const reportId = target.getAttribute("data-view-id");
+      document.getElementById("reportsList").addEventListener("click", async function (event) {
+        const button = event.target.closest("[data-view]");
+        if (!button) return;
+
+        const reportId = button.getAttribute("data-view");
         const client = getSupabaseClient();
         if (!client || !reportId) return;
 
-        // Fetch the specific report to get file data
-        const { data, error } = await client
+        const result = await client
           .from("reports")
           .select("*")
           .eq("id", reportId)
-          .single();
+          .maybeSingle();
 
-        if (error || !data) {
-          console.error("Failed to fetch report details:", error);
+        if (result.error || !result.data || !result.data.file_data) {
           return;
         }
 
-        // Handle viewing the report
-        if (data.file_url) {
-          // If it's a URL, open in new tab
-          window.open(data.file_url, '_blank');
-        } else if (data.file_data) {
-          // If it's base64 data, create a blob and download/view
-          try {
-            let base64Data = data.file_data;
-            
-            // Check if it's a data URL (starts with "data:")
-            if (base64Data.startsWith('data:')) {
-              // Extract the base64 part after the comma
-              const commaIndex = base64Data.indexOf(',');
-              if (commaIndex !== -1) {
-                base64Data = base64Data.substring(commaIndex + 1);
-              }
-            }
-            
-            const byteCharacters = atob(base64Data);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-              byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const blob = new Blob([byteArray], { type: data.file_type || 'application/octet-stream' });
-            const url = URL.createObjectURL(blob);
-            
-            if (data.file_type?.startsWith('image/')) {
-              // For images, open in new tab
-              window.open(url, '_blank');
-            } else {
-              // For other files, download
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = data.file_name || 'report';
-              document.body.appendChild(a);
-              a.click();
-              document.body.removeChild(a);
-            }
-            
-            // Clean up the object URL after a delay
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
-          } catch (e) {
-            console.error("Failed to process file data:", e);
-            alert("Unable to open the file. It may be corrupted or in an unsupported format.");
-          }
-        }
+        window.open(result.data.file_data, "_blank");
       });
 
       loadReports();

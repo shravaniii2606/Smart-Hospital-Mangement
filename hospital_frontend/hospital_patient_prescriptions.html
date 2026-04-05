@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --navy:#0f2b63; --blue:#0b4ea2; --sky:#17a2b8; --text:#17233d; --muted:#5d6f8f; --line:#dce6f2; }
+    :root { --navy:#0f2b63; --blue:#0b4ea2; --sky:#17a2b8; --text:#17233d; --muted:#5d6f8f; --line:#dce6f2; --danger:#c53b3b; --success:#177245; }
     body { min-height:100vh; font-family:Poppins, Arial, sans-serif; background:radial-gradient(circle at top left, rgba(23,162,184,.15), transparent 22%), linear-gradient(180deg, #f7fbff 0%, #edf4fb 100%); color:var(--text); padding:24px; }
     .dashboard { max-width:1320px; margin:0 auto; display:flex; gap:18px; align-items:flex-start; min-height:calc(100vh - 48px); }
     .sidebar-shell { width:138px; flex:0 0 138px; background:linear-gradient(180deg, var(--navy), #14346b 56%, #0c204f); border-radius:26px; box-shadow:0 18px 42px rgba(15,43,99,.18); padding:16px 12px; }
@@ -32,6 +32,7 @@
     .prescription-box { background:#fff; border:1px solid var(--line); border-radius:16px; padding:14px; }
     .prescription-box span { display:block; font-size:12px; font-weight:700; color:#5d6f8f; text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
     .prescription-box p { color:#17233d; white-space:pre-wrap; }
+    .empty-state { margin-top:22px; border:1px dashed var(--line); border-radius:20px; padding:18px; color:var(--muted); background:#fbfdff; }
     .upload-form { margin-top:10px; display:grid; gap:14px; }
     .field { display:grid; gap:8px; }
     label { font-size:14px; font-weight:700; }
@@ -39,9 +40,11 @@
     .input:focus, textarea:focus { border-color:var(--blue); box-shadow:0 0 0 4px rgba(11,78,162,.12); }
     textarea { resize:vertical; min-height:110px; }
     .upload-button { border:0; border-radius:16px; padding:14px 18px; font-size:15px; font-weight:700; cursor:pointer; color:#fff; background:linear-gradient(135deg, var(--blue), var(--sky)); box-shadow:0 14px 24px rgba(11,78,162,.2); }
-    .error { min-height:20px; color:#c53b3b; font-size:13px; }
+    .upload-button:disabled { opacity:.7; cursor:wait; }
+    .status { min-height:20px; font-size:13px; }
+    .status.error { color:var(--danger); }
+    .status.success { color:var(--success); }
     .back-link { display:inline-flex; margin-top:18px; text-decoration:none; color:var(--blue); background:#eef4ff; border:1px solid #cfe0f7; border-radius:16px; padding:14px 18px; font-weight:700; gap:10px; align-items:center; }
-    .empty-state { margin-top:22px; border:1px dashed var(--line); border-radius:20px; padding:18px; color:var(--muted); background:#fbfdff; }
     @media (max-width:980px) { .dashboard { display:grid; } .sidebar-shell { width:100%; } .sidebar { grid-template-columns:repeat(3, minmax(0, 1fr)); } .page-grid { grid-template-columns:1fr; } }
     @media (max-width:720px) { .prescription-grid { grid-template-columns:1fr; } }
     @media (max-width:640px) { body { padding:12px; } .sidebar { grid-template-columns:repeat(2, minmax(0, 1fr)); } .card { padding:20px; } }
@@ -75,7 +78,7 @@
         </article>
         <article class="card">
           <h2>Add Prescription</h2>
-          <p>Write the doctor prescription here so the patient can see it immediately from the patient portal.</p>
+          <p>Write the prescription here so the patient can see it in their portal.</p>
           <form id="prescriptionForm" class="upload-form" novalidate>
             <div class="field">
               <label for="prescriptionTitle">Prescription Title</label>
@@ -93,8 +96,8 @@
               <label for="prescriptionNotes">Notes</label>
               <textarea id="prescriptionNotes" placeholder="Add advice, duration, or follow-up notes."></textarea>
             </div>
-            <p id="formError" class="error" aria-live="polite"></p>
-            <button class="upload-button" type="submit">Add Prescription</button>
+            <p id="prescriptionStatus" class="status" aria-live="polite"></p>
+            <button id="prescriptionSubmit" class="upload-button" type="submit">Add Prescription</button>
           </form>
         </article>
       </section>
@@ -103,167 +106,170 @@
   <script src="../hospital_backend/hospital_patients.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
+    (function () {
+      const SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
 
-    function getSupabaseClient() {
-      if (typeof supabase === "undefined" || !supabase.createClient) {
-        return null;
-      }
-      return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
-
-    const pageTitle = document.getElementById("pageTitle");
-    const pageSubtitle = document.getElementById("pageSubtitle");
-    const prescriptionList = document.getElementById("prescriptionList");
-    const prescriptionEmpty = document.getElementById("prescriptionEmpty");
-    const prescriptionForm = document.getElementById("prescriptionForm");
-    const formError = document.getElementById("formError");
-    const backLink = document.getElementById("backLink");
-    let patient = null;
-
-    function renderPrescriptions(prescriptions) {
-      if (!prescriptions || prescriptions.length === 0) {
-        prescriptionList.innerHTML = "";
-        prescriptionEmpty.hidden = false;
-        return;
+      function getSupabaseClient() {
+        if (typeof supabase === "undefined" || !supabase.createClient) {
+          return null;
+        }
+        return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
 
-      prescriptionEmpty.hidden = true;
-      prescriptionList.innerHTML = prescriptions.map((prescription) => `
-        <article class="prescription-card">
-          <div class="prescription-head">
-            <div>
-              <h3>${prescription.title || "Prescription"}</h3>
-              <p>${prescription.notes || "No additional notes provided."}</p>
-            </div>
-            <span class="prescription-date">${prescription.date || prescription.created_at?.split("T")[0] || "-"}</span>
-          </div>
-          <div class="prescription-grid">
-            <div class="prescription-box">
-              <span>Doctor</span>
-              <p>${prescription.doctor_name || "-"}</p>
-            </div>
-            <div class="prescription-box">
-              <span>Medicines</span>
-              <p>${prescription.medicines || "-"}</p>
-            </div>
-          </div>
-        </article>
-      `).join("");
-    }
-
-    async function getPatientUserId(currentPatient, client) {
-      const profileResult = await client
-        .from("patient_profile")
-        .select("user_id")
-        .eq("email", currentPatient.email)
-        .maybeSingle();
-
-      if (profileResult.error || !profileResult.data) {
-        return null;
+      function normalizeEmail(value) {
+        return String(value || "").trim().toLowerCase();
       }
 
-      return profileResult.data.user_id;
-    }
-
-    async function loadPrescriptions(currentPatient) {
-      const client = getSupabaseClient();
-      if (!client || !currentPatient || !currentPatient.email) {
-        renderPrescriptions([]);
-        return;
+      function setStatus(message, type) {
+        const statusEl = document.getElementById("prescriptionStatus");
+        statusEl.textContent = message || "";
+        statusEl.className = "status" + (type ? " " + type : "");
       }
 
-      const userId = await getPatientUserId(currentPatient, client);
-      if (!userId) {
-        renderPrescriptions([]);
-        return;
+      function renderPrescriptions(prescriptions) {
+        const listEl = document.getElementById("prescriptionList");
+        const emptyEl = document.getElementById("prescriptionEmpty");
+
+        if (!prescriptions.length) {
+          listEl.innerHTML = "";
+          emptyEl.hidden = false;
+          return;
+        }
+
+        emptyEl.hidden = true;
+        listEl.innerHTML = prescriptions.map(function (prescription) {
+          return `
+            <article class="prescription-card">
+              <div class="prescription-head">
+                <div>
+                  <h3>${prescription.title || "Prescription"}</h3>
+                  <p>${prescription.notes || "No additional notes provided."}</p>
+                </div>
+                <span class="prescription-date">${prescription.date || (prescription.created_at ? prescription.created_at.split("T")[0] : "-")}</span>
+              </div>
+              <div class="prescription-grid">
+                <div class="prescription-box">
+                  <span>Doctor</span>
+                  <p>${prescription.doctor_name || "-"}</p>
+                </div>
+                <div class="prescription-box">
+                  <span>Medicines</span>
+                  <p>${prescription.medicines || "-"}</p>
+                </div>
+              </div>
+            </article>
+          `;
+        }).join("");
       }
 
-      const result = await client
-        .from("prescriptions")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+      async function fetchPrescriptions(client, patient) {
+        const patientEmail = normalizeEmail(patient.email);
+        if (!patientEmail) {
+          return [];
+        }
 
-      if (result.error) {
-        console.error("Error fetching prescriptions:", result.error);
-        renderPrescriptions([]);
-        return;
+        const emailResult = await client
+          .from("prescriptions")
+          .select("*")
+          .ilike("patient_email", patientEmail)
+          .order("created_at", { ascending: false });
+
+        if (emailResult.error) {
+          console.error("Failed to load prescriptions:", emailResult.error);
+          return [];
+        }
+
+        return emailResult.data || [];
       }
 
-      renderPrescriptions(result.data || []);
-    }
+      async function init() {
+        const client = getSupabaseClient();
+        if (!client) {
+          setStatus("Supabase client not available.", "error");
+          return;
+        }
 
-    (async function () {
-      const query = new URLSearchParams(window.location.search);
-      const patientId = query.get("id");
-      patient = patientId ? await getPatientById(patientId) : null;
+        const query = new URLSearchParams(window.location.search);
+        const patientId = query.get("id");
+        const patient = patientId ? await getPatientById(patientId) : null;
+        const formEl = document.getElementById("prescriptionForm");
+        const submitEl = document.getElementById("prescriptionSubmit");
 
-      if (!patient) {
-        pageTitle.textContent = "Patient Not Found";
-        pageSubtitle.textContent = "The requested patient record could not be found.";
-        prescriptionForm.hidden = true;
-        backLink.href = "hospital_patients.html";
-        return;
-      }
+        if (!patient) {
+          document.getElementById("pageTitle").textContent = "Patient Not Found";
+          document.getElementById("pageSubtitle").textContent = "The requested patient record could not be found.";
+          document.getElementById("backLink").href = "hospital_patients.html";
+          formEl.hidden = true;
+          return;
+        }
 
-      pageTitle.textContent = `${patient.name} Prescriptions`;
-      pageSubtitle.textContent = "Current and historical prescriptions for this patient.";
-      backLink.href = `hospital_patient_details.html?id=${patient.id}`;
-      loadPrescriptions(patient);
-    })();
+        document.getElementById("pageTitle").textContent = patient.name + " Prescriptions";
+        document.getElementById("pageSubtitle").textContent = "Current and historical prescriptions for this patient.";
+        document.getElementById("backLink").href = "hospital_patient_details.html?id=" + patient.id;
 
-    prescriptionForm.addEventListener("submit", async function (event) {
-      event.preventDefault();
+        async function refreshPrescriptions() {
+          const prescriptions = await fetchPrescriptions(client, patient);
+          renderPrescriptions(prescriptions);
+        }
 
-      if (!patient) {
-        return;
-      }
+        await refreshPrescriptions();
 
-      const title = document.getElementById("prescriptionTitle").value.trim();
-      const doctorName = document.getElementById("doctorName").value.trim();
-      const medicines = document.getElementById("prescriptionMedicines").value.trim();
-      const notes = document.getElementById("prescriptionNotes").value.trim();
+        formEl.addEventListener("submit", async function (event) {
+          event.preventDefault();
 
-      if (!title || !doctorName || !medicines) {
-        formError.textContent = "Please fill the prescription title, doctor name, and medicines.";
-        return;
-      }
+          const title = document.getElementById("prescriptionTitle").value.trim();
+          const doctorName = document.getElementById("doctorName").value.trim();
+          const medicines = document.getElementById("prescriptionMedicines").value.trim();
+          const notes = document.getElementById("prescriptionNotes").value.trim();
+          const patientEmail = normalizeEmail(patient.email);
 
-      formError.textContent = "";
+          if (!title || !doctorName || !medicines) {
+            setStatus("Please fill the prescription title, doctor name, and medicines.", "error");
+            return;
+          }
 
-      const client = getSupabaseClient();
-      if (!client) {
-        formError.textContent = "Supabase client not available.";
-        return;
-      }
+          if (!patientEmail) {
+            setStatus("Patient email is missing.", "error");
+            return;
+          }
 
-      const userId = await getPatientUserId(patient, client);
-      if (!userId) {
-        formError.textContent = "Could not find patient profile in database.";
-        return;
-      }
+          submitEl.disabled = true;
+          submitEl.textContent = "Saving...";
+          setStatus("", "");
 
-      const insertResult = await client
-        .from("prescriptions")
-        .insert({
-          user_id: userId,
-          title: title,
-          doctor_name: doctorName,
-          medicines: medicines,
-          notes: notes,
-          date: new Date().toISOString().slice(0, 10)
+          try {
+            const insertResult = await client
+              .from("prescriptions")
+              .insert({
+                patient_email: patientEmail,
+                title: title,
+                doctor_name: doctorName,
+                medicines: medicines,
+                notes: notes,
+                date: new Date().toISOString().slice(0, 10)
+              })
+              .select();
+
+            if (insertResult.error || !insertResult.data || !insertResult.data.length) {
+              throw new Error(insertResult.error ? insertResult.error.message : "Failed to save prescription.");
+            }
+
+            formEl.reset();
+            setStatus("Prescription saved successfully.", "success");
+            await refreshPrescriptions();
+          } catch (error) {
+            console.error("Prescription save failed:", error);
+            setStatus(error.message || "Failed to save prescription.", "error");
+          } finally {
+            submitEl.disabled = false;
+            submitEl.textContent = "Add Prescription";
+          }
         });
-
-      if (insertResult.error) {
-        formError.textContent = insertResult.error.message || "Failed to save prescription.";
-        return;
       }
 
-      await loadPrescriptions(patient);
-      prescriptionForm.reset();
-    });
+      init();
+    })();
   </script>
 </body>
 </html>

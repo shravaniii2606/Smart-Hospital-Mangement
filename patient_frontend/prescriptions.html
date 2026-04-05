@@ -13,42 +13,15 @@
       <div class="body">
         <div class="hs-layout">
           <nav class="hs-sidebar" aria-label="Home sections">
-            <a class="hs-side-link" href="patient_home.html">
-              <span><i class="fa-solid fa-house"></i></span>
-              <small>Home</small>
-            </a>
-            <a class="hs-side-link" href="ai.html">
-              <span><i class="fa-solid fa-robot"></i></span>
-              <small>AI Chatbot</small>
-            </a>
-            <a class="hs-side-link" href="doctors.html">
-              <span><i class="fa-solid fa-user-doctor"></i></span>
-              <small>Find Doctors</small>
-            </a>
-            <a class="hs-side-link" href="bed_availability.html">
-              <span><i class="fa-solid fa-bed"></i></span>
-              <small>Bed Availability</small>
-            </a>
-            <a class="hs-side-link" href="appointments.html">
-              <span><i class="fa-solid fa-calendar-check"></i></span>
-              <small>My Appointments</small>
-            </a>
-            <a class="hs-side-link" href="emergency.html">
-              <span><i class="fa-solid fa-truck-medical"></i></span>
-              <small>Emergency</small>
-            </a>
-            <a class="hs-side-link" href="profile.html">
-              <span><i class="fa-regular fa-user"></i></span>
-              <small>Profile</small>
-            </a>
-            <a class="hs-side-link" href="reports.html">
-              <span><i class="fa-solid fa-file-medical"></i></span>
-              <small>Reports</small>
-            </a>
-            <a class="hs-side-link active" href="prescriptions.html">
-              <span><i class="fa-solid fa-prescription-bottle-medical"></i></span>
-              <small>Prescriptions</small>
-            </a>
+            <a class="hs-side-link" href="patient_home.html"><span><i class="fa-solid fa-house"></i></span><small>Home</small></a>
+            <a class="hs-side-link" href="ai.html"><span><i class="fa-solid fa-robot"></i></span><small>AI Chatbot</small></a>
+            <a class="hs-side-link" href="doctors.html"><span><i class="fa-solid fa-user-doctor"></i></span><small>Find Doctors</small></a>
+            <a class="hs-side-link" href="bed_availability.html"><span><i class="fa-solid fa-bed"></i></span><small>Bed Availability</small></a>
+            <a class="hs-side-link" href="appointments.html"><span><i class="fa-solid fa-calendar-check"></i></span><small>My Appointments</small></a>
+            <a class="hs-side-link" href="emergency.html"><span><i class="fa-solid fa-truck-medical"></i></span><small>Emergency</small></a>
+            <a class="hs-side-link" href="profile.html"><span><i class="fa-regular fa-user"></i></span><small>Profile</small></a>
+            <a class="hs-side-link" href="reports.html"><span><i class="fa-solid fa-file-medical"></i></span><small>Reports</small></a>
+            <a class="hs-side-link active" href="prescriptions.html"><span><i class="fa-solid fa-prescription-bottle-medical"></i></span><small>Prescriptions</small></a>
           </nav>
 
           <section class="hs-main">
@@ -69,13 +42,11 @@
                 <div class="hs-location-icon"><i class="fa-solid fa-prescription-bottle-medical"></i></div>
                 <div>
                   <h4>Doctor Prescriptions</h4>
-                  <p>Your doctor-added prescriptions will appear here.</p>
+                  <p>Your hospital-added prescriptions will appear here.</p>
                 </div>
               </div>
               <div id="prescriptionsList" class="hs-recent-list" style="margin-top: 12px;"></div>
-              <div id="prescriptionsEmpty" class="hs-recent-empty" style="display: none;">
-                No prescriptions found.
-              </div>
+              <div id="prescriptionsEmpty" class="hs-recent-empty" style="display: none;">No prescriptions found.</div>
             </section>
           </section>
         </div>
@@ -96,33 +67,39 @@
         return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       }
 
-      const listEl = document.getElementById("prescriptionsList");
-      const emptyEl = document.getElementById("prescriptionsEmpty");
+      function normalizeEmail(value) {
+        return String(value || "").trim().toLowerCase();
+      }
 
       function renderPrescriptions(prescriptions) {
-        if (!prescriptions || prescriptions.length === 0) {
+        const listEl = document.getElementById("prescriptionsList");
+        const emptyEl = document.getElementById("prescriptionsEmpty");
+
+        if (!prescriptions.length) {
           listEl.innerHTML = "";
           emptyEl.style.display = "block";
           return;
         }
 
         emptyEl.style.display = "none";
-        listEl.innerHTML = prescriptions.map((prescription) => `
-          <div class="appt-doc-card">
-            <div class="doc-avatar"><i class="fa-solid fa-prescription-bottle-medical"></i></div>
-            <div class="doc-content">
-              <div class="appt-head-row">
-                <h3>${prescription.title || "Prescription"}</h3>
-                <small>${prescription.date || prescription.created_at?.split("T")[0] || "-"}</small>
-              </div>
-              <p class="appt-location">${prescription.notes || "No additional notes provided."}</p>
-              <div class="appt-detail-grid">
-                <small><strong>Doctor:</strong> ${prescription.doctor_name || "-"}</small>
-                <small><strong>Medicines:</strong> ${prescription.medicines || "-"}</small>
+        listEl.innerHTML = prescriptions.map(function (prescription) {
+          return `
+            <div class="appt-doc-card">
+              <div class="doc-avatar"><i class="fa-solid fa-prescription-bottle-medical"></i></div>
+              <div class="doc-content">
+                <div class="appt-head-row">
+                  <h3>${prescription.title || "Prescription"}</h3>
+                  <small>${prescription.date || (prescription.created_at ? prescription.created_at.split("T")[0] : "-")}</small>
+                </div>
+                <p class="appt-location">${prescription.notes || "No additional notes provided."}</p>
+                <div class="appt-detail-grid">
+                  <small><strong>Doctor:</strong> ${prescription.doctor_name || "-"}</small>
+                  <small><strong>Medicines:</strong> ${prescription.medicines || "-"}</small>
+                </div>
               </div>
             </div>
-          </div>
-        `).join("");
+          `;
+        }).join("");
       }
 
       async function loadPrescriptions() {
@@ -134,7 +111,12 @@
 
         const userResult = await client.auth.getUser();
         if (userResult.error || !userResult.data || !userResult.data.user) {
-          console.error("User not authenticated", userResult.error);
+          renderPrescriptions([]);
+          return;
+        }
+
+        const patientEmail = normalizeEmail(userResult.data.user.email);
+        if (!patientEmail) {
           renderPrescriptions([]);
           return;
         }
@@ -142,11 +124,11 @@
         const result = await client
           .from("prescriptions")
           .select("*")
-          .eq("user_id", userResult.data.user.id)
+          .ilike("patient_email", patientEmail)
           .order("created_at", { ascending: false });
 
         if (result.error) {
-          console.error("Prescriptions query failed:", result.error);
+          console.error("Failed to load prescriptions:", result.error);
           renderPrescriptions([]);
           return;
         }
