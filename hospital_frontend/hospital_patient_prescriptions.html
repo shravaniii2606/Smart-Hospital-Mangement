@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Patient Reports - HealthSphere Hospital</title>
+  <title>Patient Prescriptions - HealthSphere Hospital</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,11 +24,14 @@
     .card { background:#fff; border:1px solid var(--line); border-radius:26px; padding:28px; box-shadow:0 14px 30px rgba(23,35,61,.06); }
     .card h1, .card h2 { margin-bottom:8px; }
     .card p { color:var(--muted); line-height:1.6; }
-    .report-list { margin-top:22px; display:grid; gap:14px; }
-    .report-card { border:1px solid var(--line); border-radius:22px; padding:20px; background:linear-gradient(180deg, #fff, #f8fbff); display:grid; gap:10px; }
-    .report-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
-    .report-date { color:#4d638a; font-size:13px; font-weight:700; }
-    .report-link { display:inline-flex; width:max-content; align-items:center; gap:8px; text-decoration:none; color:var(--blue); background:#eef4ff; border:1px solid #cfe0f7; border-radius:14px; padding:10px 14px; font-weight:700; }
+    .prescription-list { margin-top:22px; display:grid; gap:14px; }
+    .prescription-card { border:1px solid var(--line); border-radius:22px; padding:20px; background:linear-gradient(180deg, #fff, #f8fbff); display:grid; gap:12px; }
+    .prescription-head { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+    .prescription-date { color:#4d638a; font-size:13px; font-weight:700; }
+    .prescription-grid { display:grid; gap:10px; grid-template-columns:repeat(2, minmax(0, 1fr)); }
+    .prescription-box { background:#fff; border:1px solid var(--line); border-radius:16px; padding:14px; }
+    .prescription-box span { display:block; font-size:12px; font-weight:700; color:#5d6f8f; text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
+    .prescription-box p { color:#17233d; white-space:pre-wrap; }
     .upload-form { margin-top:10px; display:grid; gap:14px; }
     .field { display:grid; gap:8px; }
     label { font-size:14px; font-weight:700; }
@@ -38,7 +41,9 @@
     .upload-button { border:0; border-radius:16px; padding:14px 18px; font-size:15px; font-weight:700; cursor:pointer; color:#fff; background:linear-gradient(135deg, var(--blue), var(--sky)); box-shadow:0 14px 24px rgba(11,78,162,.2); }
     .error { min-height:20px; color:#c53b3b; font-size:13px; }
     .back-link { display:inline-flex; margin-top:18px; text-decoration:none; color:var(--blue); background:#eef4ff; border:1px solid #cfe0f7; border-radius:16px; padding:14px 18px; font-weight:700; gap:10px; align-items:center; }
+    .empty-state { margin-top:22px; border:1px dashed var(--line); border-radius:20px; padding:18px; color:var(--muted); background:#fbfdff; }
     @media (max-width:980px) { .dashboard { display:grid; } .sidebar-shell { width:100%; } .sidebar { grid-template-columns:repeat(3, minmax(0, 1fr)); } .page-grid { grid-template-columns:1fr; } }
+    @media (max-width:720px) { .prescription-grid { grid-template-columns:1fr; } }
     @media (max-width:640px) { body { padding:12px; } .sidebar { grid-template-columns:repeat(2, minmax(0, 1fr)); } .card { padding:20px; } }
   </style>
 </head>
@@ -62,29 +67,34 @@
       </div>
       <section class="page-grid">
         <article class="card">
-          <h1 id="pageTitle">Patient Reports</h1>
-          <p id="pageSubtitle">All current and previous reports for this patient.</p>
-          <div id="reportList" class="report-list"></div>
+          <h1 id="pageTitle">Patient Prescriptions</h1>
+          <p id="pageSubtitle">Doctor-added prescriptions for this patient.</p>
+          <div id="prescriptionList" class="prescription-list"></div>
+          <div id="prescriptionEmpty" class="empty-state" hidden>No prescriptions found for this patient yet.</div>
           <a id="backLink" class="back-link" href="#"><i class="fa-solid fa-arrow-left"></i><span>Back to Patient Details</span></a>
         </article>
         <article class="card">
-          <h2>Add Report</h2>
-          <p>Upload a new report file such as PNG, JPEG, PDF, or similar supported formats for this patient.</p>
-          <form id="reportForm" class="upload-form" novalidate>
+          <h2>Add Prescription</h2>
+          <p>Write the doctor prescription here so the patient can see it immediately from the patient portal.</p>
+          <form id="prescriptionForm" class="upload-form" novalidate>
             <div class="field">
-              <label for="reportTitle">Report Title</label>
-              <input id="reportTitle" class="input" type="text" placeholder="Enter report title" required />
+              <label for="prescriptionTitle">Prescription Title</label>
+              <input id="prescriptionTitle" class="input" type="text" placeholder="Enter prescription title" required />
             </div>
             <div class="field">
-              <label for="reportSummary">Summary</label>
-              <textarea id="reportSummary" placeholder="Add a short report summary." required></textarea>
+              <label for="doctorName">Doctor Name</label>
+              <input id="doctorName" class="input" type="text" placeholder="Enter doctor name" required />
             </div>
             <div class="field">
-              <label for="reportFile">Upload File</label>
-              <input id="reportFile" class="input" type="file" accept=".png,.jpg,.jpeg,.pdf,.webp,.gif" required />
+              <label for="prescriptionMedicines">Medicines</label>
+              <textarea id="prescriptionMedicines" placeholder="Add medicine names, dosage, and timing." required></textarea>
+            </div>
+            <div class="field">
+              <label for="prescriptionNotes">Notes</label>
+              <textarea id="prescriptionNotes" placeholder="Add advice, duration, or follow-up notes."></textarea>
             </div>
             <p id="formError" class="error" aria-live="polite"></p>
-            <button class="upload-button" type="submit">Add Report</button>
+            <button class="upload-button" type="submit">Add Prescription</button>
           </form>
         </article>
       </section>
@@ -103,80 +113,86 @@
       return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    function createReportId() {
-      return "rep-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
-    }
-
     const pageTitle = document.getElementById("pageTitle");
     const pageSubtitle = document.getElementById("pageSubtitle");
-    const reportList = document.getElementById("reportList");
-    const reportForm = document.getElementById("reportForm");
+    const prescriptionList = document.getElementById("prescriptionList");
+    const prescriptionEmpty = document.getElementById("prescriptionEmpty");
+    const prescriptionForm = document.getElementById("prescriptionForm");
     const formError = document.getElementById("formError");
     const backLink = document.getElementById("backLink");
     let patient = null;
 
-    async function renderReports(currentPatient) {
-      const client = getSupabaseClient();
-      if (!client || !currentPatient || !currentPatient.email) {
-        reportList.innerHTML = "";
+    function renderPrescriptions(prescriptions) {
+      if (!prescriptions || prescriptions.length === 0) {
+        prescriptionList.innerHTML = "";
+        prescriptionEmpty.hidden = false;
         return;
       }
 
-      // Find the Supabase user_id for this patient by email
+      prescriptionEmpty.hidden = true;
+      prescriptionList.innerHTML = prescriptions.map((prescription) => `
+        <article class="prescription-card">
+          <div class="prescription-head">
+            <div>
+              <h3>${prescription.title || "Prescription"}</h3>
+              <p>${prescription.notes || "No additional notes provided."}</p>
+            </div>
+            <span class="prescription-date">${prescription.date || prescription.created_at?.split("T")[0] || "-"}</span>
+          </div>
+          <div class="prescription-grid">
+            <div class="prescription-box">
+              <span>Doctor</span>
+              <p>${prescription.doctor_name || "-"}</p>
+            </div>
+            <div class="prescription-box">
+              <span>Medicines</span>
+              <p>${prescription.medicines || "-"}</p>
+            </div>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    async function getPatientUserId(currentPatient, client) {
       const profileResult = await client
         .from("patient_profile")
         .select("user_id")
         .eq("email", currentPatient.email)
         .maybeSingle();
 
-      console.log("Looking for patient profile:", currentPatient.email);
-      console.log("Profile query result:", profileResult);
-
       if (profileResult.error || !profileResult.data) {
-        console.error("Could not find Supabase user for patient:", currentPatient.email);
-        reportList.innerHTML = "";
+        return null;
+      }
+
+      return profileResult.data.user_id;
+    }
+
+    async function loadPrescriptions(currentPatient) {
+      const client = getSupabaseClient();
+      if (!client || !currentPatient || !currentPatient.email) {
+        renderPrescriptions([]);
         return;
       }
 
-      const userId = profileResult.data.user_id;
-      console.log("Found user_id:", userId);
+      const userId = await getPatientUserId(currentPatient, client);
+      if (!userId) {
+        renderPrescriptions([]);
+        return;
+      }
 
-      // Fetch reports from Supabase
-      const reportsResult = await client
-        .from("reports")
+      const result = await client
+        .from("prescriptions")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
-      console.log("Reports query for user", userId, ":", reportsResult);
-
-      if (reportsResult.error) {
-        console.error("Error fetching reports:", reportsResult.error);
-        reportList.innerHTML = "";
+      if (result.error) {
+        console.error("Error fetching prescriptions:", result.error);
+        renderPrescriptions([]);
         return;
       }
 
-      const reports = reportsResult.data || [];
-      console.log("Found reports:", reports);
-
-      reportList.innerHTML = reports.map((report) => {
-        const fileLink = report.file_data
-          ? `<a class="report-link" href="${report.file_data}" download="${report.file_name}"><i class="fa-solid fa-paperclip"></i><span>${report.file_name}</span></a>`
-          : `<span class="report-link"><i class="fa-regular fa-file"></i><span>${report.file_name || 'No file'}</span></span>`;
-
-        return `
-          <article class="report-card">
-            <div class="report-head">
-              <div>
-                <h3>${report.title}</h3>
-                <p>${report.summary}</p>
-              </div>
-              <span class="report-date">${report.date || report.created_at?.split('T')[0] || "-"}</span>
-            </div>
-            ${fileLink}
-          </article>
-        `;
-      }).join("");
+      renderPrescriptions(result.data || []);
     }
 
     (async function () {
@@ -187,30 +203,31 @@
       if (!patient) {
         pageTitle.textContent = "Patient Not Found";
         pageSubtitle.textContent = "The requested patient record could not be found.";
-        reportForm.hidden = true;
+        prescriptionForm.hidden = true;
         backLink.href = "hospital_patients.html";
         return;
       }
 
-      pageTitle.textContent = `${patient.name} Reports`;
-      pageSubtitle.textContent = "Current and historical reports for this patient.";
+      pageTitle.textContent = `${patient.name} Prescriptions`;
+      pageSubtitle.textContent = "Current and historical prescriptions for this patient.";
       backLink.href = `hospital_patient_details.html?id=${patient.id}`;
-      renderReports(patient);
+      loadPrescriptions(patient);
     })();
 
-    reportForm.addEventListener("submit", async function (event) {
+    prescriptionForm.addEventListener("submit", async function (event) {
       event.preventDefault();
 
       if (!patient) {
         return;
       }
 
-      const reportTitle = document.getElementById("reportTitle").value.trim();
-      const reportSummary = document.getElementById("reportSummary").value.trim();
-      const reportFile = document.getElementById("reportFile").files[0];
+      const title = document.getElementById("prescriptionTitle").value.trim();
+      const doctorName = document.getElementById("doctorName").value.trim();
+      const medicines = document.getElementById("prescriptionMedicines").value.trim();
+      const notes = document.getElementById("prescriptionNotes").value.trim();
 
-      if (!reportTitle || !reportSummary || !reportFile) {
-        formError.textContent = "Please fill all report fields and choose a file.";
+      if (!title || !doctorName || !medicines) {
+        formError.textContent = "Please fill the prescription title, doctor name, and medicines.";
         return;
       }
 
@@ -222,57 +239,30 @@
         return;
       }
 
-      // Find the Supabase user_id for this patient
-      const profileResult = await client
-        .from("patient_profile")
-        .select("user_id")
-        .eq("email", patient.email)
-        .maybeSingle();
-
-      if (profileResult.error || !profileResult.data) {
+      const userId = await getPatientUserId(patient, client);
+      if (!userId) {
         formError.textContent = "Could not find patient profile in database.";
         return;
       }
 
-      const userId = profileResult.data.user_id;
-
-      // Read file as base64
-      const reader = new FileReader();
-      reader.onload = async function () {
-        const reportData = {
+      const insertResult = await client
+        .from("prescriptions")
+        .insert({
           user_id: userId,
-          title: reportTitle,
-          summary: reportSummary,
-          file_name: reportFile.name,
-          file_type: reportFile.type,
-          file_data: reader.result,
-          file_size: reportFile.size,
+          title: title,
+          doctor_name: doctorName,
+          medicines: medicines,
+          notes: notes,
           date: new Date().toISOString().slice(0, 10)
-        };
+        });
 
-        console.log("Inserting report:", reportData);
+      if (insertResult.error) {
+        formError.textContent = insertResult.error.message || "Failed to save prescription.";
+        return;
+      }
 
-        const insertResult = await client
-          .from("reports")
-          .insert(reportData);
-
-        console.log("Insert result:", insertResult);
-
-        if (insertResult.error) {
-          formError.textContent = insertResult.error.message || "Failed to save report.";
-          return;
-        }
-
-        // Refresh the reports list
-        await renderReports(patient);
-        reportForm.reset();
-      };
-
-      reader.onerror = function () {
-        formError.textContent = "Unable to read the selected report file.";
-      };
-
-      reader.readAsDataURL(reportFile);
+      await loadPrescriptions(patient);
+      prescriptionForm.reset();
     });
   </script>
 </body>

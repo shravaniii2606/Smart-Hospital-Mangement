@@ -136,14 +136,37 @@
         patient_name: patientMap[appt.user_id] || appt.patient_name || 'Patient'
       }));
 
-      return appointmentsWithNames;
+      return appointmentsWithNames.sort(compareAppointments);
+    }
+
+    function compareAppointments(left, right) {
+      const leftDate = left?.appointment_date || '';
+      const rightDate = right?.appointment_date || '';
+      if (leftDate !== rightDate) {
+        return leftDate.localeCompare(rightDate);
+      }
+
+      const leftTime = left?.appointment_time || '';
+      const rightTime = right?.appointment_time || '';
+      if (leftTime !== rightTime) {
+        return leftTime.localeCompare(rightTime);
+      }
+
+      const leftToken = Number(left?.token || 0);
+      const rightToken = Number(right?.token || 0);
+      if (!Number.isNaN(leftToken) && !Number.isNaN(rightToken) && leftToken !== rightToken) {
+        return leftToken - rightToken;
+      }
+
+      return 0;
     }
 
     function renderAppointments(appointments) {
       const listEl = document.getElementById("appointmentsList");
       const emptyEl = document.getElementById("emptyState");
+      const sortedAppointments = (appointments || []).slice().sort(compareAppointments);
 
-      if (!appointments || appointments.length === 0) {
+      if (!sortedAppointments || sortedAppointments.length === 0) {
         listEl.innerHTML = "";
         emptyEl.hidden = false;
         return;
@@ -152,7 +175,7 @@
       emptyEl.hidden = true;
       
       let html = '';
-      for (const appt of appointments) {
+      for (const appt of sortedAppointments) {
         html += `
         <div class="appointment-card">
           <div class="appointment-header">

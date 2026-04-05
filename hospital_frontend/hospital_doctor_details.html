@@ -170,15 +170,36 @@
     function renderDoctorAppointments(appointments) {
       const listEl = document.getElementById("doctorAppointmentsList");
       const noEl = document.getElementById("doctorNoAppointments");
+      const sortedAppointments = (appointments || []).slice().sort((left, right) => {
+        const leftDate = left?.appointment_date || "";
+        const rightDate = right?.appointment_date || "";
+        if (leftDate !== rightDate) {
+          return leftDate.localeCompare(rightDate);
+        }
 
-      if (!appointments || appointments.length === 0) {
+        const leftTime = left?.appointment_time || "";
+        const rightTime = right?.appointment_time || "";
+        if (leftTime !== rightTime) {
+          return leftTime.localeCompare(rightTime);
+        }
+
+        const leftToken = Number(left?.token || 0);
+        const rightToken = Number(right?.token || 0);
+        if (!Number.isNaN(leftToken) && !Number.isNaN(rightToken) && leftToken !== rightToken) {
+          return leftToken - rightToken;
+        }
+
+        return 0;
+      });
+
+      if (!sortedAppointments || sortedAppointments.length === 0) {
         listEl.innerHTML = "";
         noEl.hidden = false;
         return;
       }
 
       noEl.hidden = true;
-      listEl.innerHTML = appointments.map((appt) => `
+      listEl.innerHTML = sortedAppointments.map((appt) => `
         <div class="appointment-card">
           <div class="appointment-header">
             <h3>${appt.user_id || "Patient"} - ${appt.appointment_date || "-"} ${appt.appointment_time || ""}</h3>
