@@ -82,9 +82,26 @@
               <form id="appointmentForm" class="hs-search-panel">
                 <p id="apptError" class="auth-error" hidden></p>
                 <label class="hs-label" for="apptDate">Preferred Date</label>
-                <input id="apptDate" class="input" type="date" required />
+                <div class="appt-quick-row" role="group" aria-label="Quick pick dates">
+                  <button class="appt-chip" type="button" data-date-offset="0">Today</button>
+                  <button class="appt-chip" type="button" data-date-offset="1">Tomorrow</button>
+                  <button class="appt-chip" type="button" data-date-offset="2">In 2 days</button>
+                </div>
+                <input id="apptDate" class="input date-input" type="date" lang="en-GB" required aria-describedby="apptDateHint apptDateFriendly" />
+                
+                <div id="apptDateFriendly" class="appt-date-friendly" aria-live="polite"></div>
 
                 <label class="hs-label" for="apptTime">Preferred Time</label>
+                <div class="appt-slot-grid" role="group" aria-label="Quick pick times">
+                  <button class="appt-slot" type="button" data-time="09:00">09:00</button>
+                  <button class="appt-slot" type="button" data-time="10:00">10:00</button>
+                  <button class="appt-slot" type="button" data-time="11:00">11:00</button>
+                  <button class="appt-slot" type="button" data-time="14:00">14:00</button>
+                  <button class="appt-slot" type="button" data-time="15:00">15:00</button>
+                  <button class="appt-slot" type="button" data-time="16:00">16:00</button>
+                  <button class="appt-slot" type="button" data-time="18:00">18:00</button>
+                  <button class="appt-slot" type="button" data-time="19:00">19:00</button>
+                </div>
                 <input id="apptTime" class="input" type="time" required />
                 <small id="apptTimeHint" class="doc-sub">Select a time within the doctor's availability.</small>
 
@@ -174,6 +191,9 @@
       const tokenEl = document.getElementById("apptToken");
       const timeHint = document.getElementById("apptTimeHint");
       const okBtn = document.getElementById("apptOkBtn");
+      const dateFriendly = document.getElementById("apptDateFriendly");
+      const dateChips = Array.from(document.querySelectorAll(".appt-chip"));
+      const timeSlots = Array.from(document.querySelectorAll(".appt-slot"));
       const supabaseClient = getSupabaseClient();
 
       function pad2(value) {
@@ -248,24 +268,98 @@
         dateInput.min = toLocalDateString(today);
       }
 
+      function setDateFromOffset(offsetDays) {
+        const base = new Date();
+        base.setDate(base.getDate() + offsetDays);
+        const value = toLocalDateString(base);
+        dateInput.value = value;
+        updateFriendlyDate(value);
+        dateChips.forEach((chip) => chip.classList.toggle("active", Number(chip.dataset.dateOffset) === offsetDays));
+      }
+
+      function updateFriendlyDate(value) {
+        if (!dateFriendly) return;
+        if (!value) {
+          dateFriendly.textContent = "";
+          return;
+        }
+        const date = new Date(`${value}T00:00:00`);
+        if (Number.isNaN(date.getTime())) {
+          dateFriendly.textContent = "";
+          return;
+        }
+        const formatter = new Intl.DateTimeFormat("en-GB", {
+          weekday: "long",
+          day: "2-digit",
+          month: "short",
+          year: "numeric"
+        });
+        dateFriendly.textContent = `Selected: ${formatter.format(date)}`;
+      }
+
+      function updateTimeSlotSelection(value) {
+        timeSlots.forEach((slot) => slot.classList.toggle("active", slot.dataset.time === value));
+      }
+
+      function updateTimeSlots(range) {
+        timeSlots.forEach((slot) => {
+          const minutes = parseTimeToMinutes(slot.dataset.time);
+          const isAvailable = !range || (minutes !== null && minutes >= range.start && minutes <= range.end);
+          slot.disabled = !isAvailable;
+          slot.classList.toggle("disabled", !isAvailable);
+          if (!isAvailable && slot.classList.contains("active")) {
+            slot.classList.remove("active");
+          }
+        });
+      }
+
       function applyAvailabilityRange(range) {
         if (!range) {
           timeInput.removeAttribute("min");
           timeInput.removeAttribute("max");
           timeHint.textContent = "Select a time within the doctor's availability.";
+          updateTimeSlots(null);
           return;
         }
         timeInput.min = minutesToTimeValue(range.start);
         timeInput.max = minutesToTimeValue(range.end);
         timeHint.textContent = `Available between ${timeInput.min} and ${timeInput.max}.`;
+        updateTimeSlots(range);
       }
 
       setDateMinToday();
+      if (dateChips.length) {
+        setDateFromOffset(0);
+      }
 
       const availabilityRange = selectedDoctor
         ? parseAvailabilityRange(selectedDoctor.availability)
         : null;
       applyAvailabilityRange(availabilityRange);
+
+      dateChips.forEach((chip) => {
+        chip.addEventListener("click", () => {
+          const offset = Number(chip.dataset.dateOffset || 0);
+          setDateFromOffset(offset);
+        });
+      });
+
+      dateInput.addEventListener("change", () => {
+        dateChips.forEach((chip) => chip.classList.remove("active"));
+        updateFriendlyDate(dateInput.value);
+      });
+
+      timeSlots.forEach((slot) => {
+        slot.addEventListener("click", () => {
+          if (slot.disabled) return;
+          timeInput.value = slot.dataset.time || "";
+          updateTimeSlotSelection(timeInput.value);
+        });
+      });
+
+      timeInput.addEventListener("change", () => {
+        updateTimeSlotSelection(timeInput.value);
+      });
 
       function showError(message) {
         if (!errorEl) return;
@@ -389,6 +483,7 @@
 
         successBox.hidden = false;
         form.reset();
+        updateFriendlyDate("");
       });
 
       okBtn.addEventListener("click", () => {

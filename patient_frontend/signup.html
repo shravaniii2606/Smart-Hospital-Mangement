@@ -13,7 +13,7 @@
 
     :root {
       --primary: #0b4ea2;
-      --accent: #17a2b8;.
+      --accent: #17a2b8;
       --text: #14213d;
       --muted: #5d6f8f;
       --surface: #ffffff;
@@ -307,6 +307,7 @@
         <div class="field">
           <label for="signupDob">Date Of Birth</label>
           <input class="input" type="date" id="signupDob" />
+          
         </div>
 
         <div class="field">
@@ -367,26 +368,66 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
   <script>
-    document.getElementById("signupDob").addEventListener("change", function () {
-      var dobValue = this.value;
+    (function () {
+      var dobInput = document.getElementById("signupDob");
       var ageInput = document.getElementById("signupAge");
+      var helpEl = document.getElementById("dobHelp");
 
-      if (!dobValue) {
-        ageInput.value = "";
-        return;
+      function pad2(value) {
+        return String(value).padStart(2, "0");
       }
 
-      var dob = new Date(dobValue);
-      var today = new Date();
-      var age = today.getFullYear() - dob.getFullYear();
-      var monthDiff = today.getMonth() - dob.getMonth();
-
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-        age--;
+      function toDateValue(date) {
+        return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate());
       }
 
-      ageInput.value = age >= 0 ? age : "";
-    });
+      function setDobBounds() {
+        var today = new Date();
+        var max = toDateValue(today);
+        var minDate = new Date(today.getFullYear() - 120, today.getMonth(), today.getDate());
+        var min = toDateValue(minDate);
+        dobInput.min = min;
+        dobInput.max = max;
+        if (helpEl) {
+          helpEl.textContent = "Select your birth date (between " + min + " and " + max + ").";
+        }
+      }
+
+      function updateAge() {
+        var dobValue = dobInput.value;
+
+        if (!dobValue) {
+          ageInput.value = "";
+          return;
+        }
+
+        var dob = new Date(dobValue + "T00:00:00");
+        var today = new Date();
+        var years = today.getFullYear() - dob.getFullYear();
+        var months = today.getMonth() - dob.getMonth();
+
+        if (today.getDate() < dob.getDate()) {
+          months--;
+        }
+
+        if (months < 0) {
+          years--;
+          months += 12;
+        }
+
+        if (years < 0) {
+          ageInput.value = "";
+          return;
+        }
+
+        var yearLabel = years === 1 ? "year" : "years";
+        var monthLabel = months === 1 ? "month" : "months";
+        ageInput.value = years + " " + yearLabel + " " + months + " " + monthLabel;
+      }
+
+      setDobBounds();
+      dobInput.addEventListener("change", updateAge);
+    })();
   </script>
 </body>
 </html>
