@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const multer = require("multer");
+const path = require("path");
+const pdfParse = require("pdf-parse");
 
 dotenv.config();
 
@@ -20,7 +22,51 @@ const upload = multer({
   limits: { fileSize: 5 * 1024 * 1024, files: 5 }
 });
 
-function buildMessages(message, files) {
+function isTextLikeFile(file) {
+  const mime = (file.mimetype || "").toLowerCase();
+  if (mime.startsWith("text/")) return true;
+  if (mime === "application/json" || mime === "application/xml") return true;
+  const ext = path.extname(file.originalname || "").toLowerCase();
+  return [".txt", ".csv", ".md", ".json", ".xml", ".log"].includes(ext);
+}
+
+function isPdfFile(file) {
+  const mime = (file.mimetype || "").toLowerCase();
+  if (mime === "application/pdf") return true;
+  const ext = path.extname(file.originalname || "").toLowerCase();
+  return ext === ".pdf";
+}
+
+function extractTextFromFile(file, maxChars) {
+  if (!file || !file.buffer) return "";
+  try {
+    const text = file.buffer.toString("utf-8");
+    if (!text) return "";
+    if (text.length > maxChars) {
+      return text.slice(0, maxChars) + "\n...[truncated]";
+    }
+    return text;
+  } catch (_err) {
+    return "";
+  }
+}
+
+async function extractTextFromPdf(file, maxChars) {
+  if (!file || !file.buffer) return "";
+  try {
+    const data = await pdfParse(file.buffer);
+    const text = (data && data.text ? data.text : "").trim();
+    if (!text) return "";
+    if (text.length > maxChars) {
+      return text.slice(0, maxChars) + "\n...[truncated]";
+    }
+    return text;
+  } catch (_err) {
+    return "";
+  }
+}
+
+async function buildMessages(message, files) {
   const base = [
     {
       role: "system",
@@ -35,6 +81,32 @@ function buildMessages(message, files) {
       .map((file) => `${file.originalname || "file"} (${file.mimetype || "unknown"})`)
       .join(", ");
     content = `${content}\n\nAttached files: ${fileList}`;
+
+    const textChunks = [];
+    const maxCharsPerFile = 12000;
+    for (const file of files) {
+      if (isTextLikeFile(file)) {
+        const extracted = extractTextFromFile(file, maxCharsPerFile);
+        if (extracted) {
+          textChunks.push(
+            `\n---\nFile: ${file.originalname || "file"}\nContent:\n${extracted}`
+          );
+        }
+        continue;
+      }
+
+      if (isPdfFile(file)) {
+        const extracted = await extractTextFromPdf(file, maxCharsPerFile);
+        if (extracted) {
+          textChunks.push(
+            `\n---\nFile: ${file.originalname || "file"}\nPDF Content:\n${extracted}`
+          );
+        }
+      }
+    }
+    if (textChunks.length) {
+      content = `${content}\n\nExtracted file contents:${textChunks.join("")}`;
+    }
   }
 
   base.push({ role: "user", content: content.trim() });
@@ -71,7 +143,7 @@ app.post("/api/chat", upload.array("files", 5), async (req, res) => {
       },
       body: JSON.stringify({
         model: OPENROUTER_MODEL,
-        messages: buildMessages(message, files),
+        messages: await buildMessages(message, files),
         temperature: 0.3
       })
     });
