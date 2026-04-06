@@ -792,6 +792,44 @@ a {
   padding: 4px 2px;
 }
 
+.hs-typing {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f0f5ff;
+  color: #1f2433;
+  border-radius: 14px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  width: max-content;
+}
+
+.hs-typing.is-hidden {
+  display: none;
+}
+
+.hs-typing-dot {
+  width: 6px;
+  height: 6px;
+  background: #2f73db;
+  border-radius: 50%;
+  display: inline-block;
+  animation: hs-typing 1.2s infinite ease-in-out;
+}
+
+.hs-typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.hs-typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.hs-typing-text {
+  color: #4d5c7a;
+}
+
 .hs-chat-bubble {
   max-width: 78%;
   padding: 10px 12px;
@@ -883,6 +921,83 @@ a {
   gap: 8px;
 }
 
+.hs-ai-attachments {
+  display: grid;
+  gap: 8px;
+}
+
+.hs-ai-attach-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.hs-ai-file {
+  display: none;
+}
+
+.hs-ai-attach-btn {
+  border: 1px solid #d8e2f4;
+  border-radius: 12px;
+  padding: 8px 14px;
+  background: #f6f9ff;
+  color: #1f2433;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hs-ai-attach-btn:hover {
+  background: #edf3ff;
+}
+
+.hs-ai-attach-note {
+  font-size: 12px;
+  color: #6a7895;
+}
+
+.hs-ai-file-list {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: #4d5c7a;
+}
+
+.hs-ai-file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f6f9ff;
+  border: 1px solid #e1e7f3;
+}
+
+.hs-ai-file-name {
+  font-weight: 600;
+  color: #1f2433;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 70%;
+}
+
+.hs-ai-file-remove {
+  border: 0;
+  background: transparent;
+  color: #d81f2f;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hs-ai-file-remove:hover {
+  text-decoration: underline;
+}
+
 .hs-ai-label {
   font-size: 12px;
   font-weight: 700;
@@ -934,6 +1049,19 @@ a {
   100% {
     transform: scale(1.15);
     opacity: 0;
+  }
+}
+
+@keyframes hs-typing {
+  0%,
+  80%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
   }
 }
 
