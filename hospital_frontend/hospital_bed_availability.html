@@ -168,6 +168,39 @@
       max-width: 760px;
     }
 
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .filter-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fff;
+    }
+
+    .filter-group label {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .filter-group select {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: inherit;
+      color: var(--text);
+      background: #fff;
+    }
+
     .ward-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -263,6 +296,124 @@
       background: linear-gradient(135deg, #0f56b9, #17a2b8);
       cursor: pointer;
       box-shadow: 0 12px 22px rgba(15, 43, 99, 0.16);
+    }
+
+    .submit-bed-btn:disabled {
+      cursor: wait;
+      opacity: 0.7;
+    }
+
+    .update-bed-btn {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 16px;
+      font: inherit;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #0f56b9, #17a2b8);
+      cursor: pointer;
+      box-shadow: 0 10px 18px rgba(15, 43, 99, 0.16);
+    }
+
+    .update-bed-btn:disabled {
+      cursor: wait;
+      opacity: 0.7;
+    }
+
+    .status-banner {
+      border-radius: 18px;
+      padding: 14px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      border: 1px solid var(--line);
+      background: #f8fbff;
+      color: var(--muted);
+    }
+
+    .status-banner.success {
+      background: #effaf3;
+      border-color: #ccebd8;
+      color: #1d6f3d;
+    }
+
+    .status-banner.error {
+      background: #fff2f2;
+      border-color: #f0cccc;
+      color: #a53c3c;
+    }
+
+    .empty-list {
+      border: 1px dashed #c8d8eb;
+      border-radius: 18px;
+      padding: 20px;
+      color: var(--muted);
+      background: #fbfdff;
+      text-align: center;
+    }
+
+    .requests-card {
+      background: linear-gradient(180deg, #fff, #f6faff);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 10px 24px rgba(23, 35, 61, 0.05);
+    }
+
+    .requests-card h2 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .requests-card p {
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 18px;
+    }
+
+    .request-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .request-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fbfdff;
+    }
+
+    .request-meta strong {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .request-meta small {
+      display: block;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .approve-request-btn {
+      border: none;
+      border-radius: 12px;
+      padding: 10px 16px;
+      font: inherit;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #1f9d50, #52b77d);
+      cursor: pointer;
+      box-shadow: 0 10px 18px rgba(31, 157, 80, 0.18);
+    }
+
+    .approve-request-btn:disabled {
+      cursor: wait;
+      opacity: 0.7;
     }
 
     .bed-row {
@@ -405,9 +556,23 @@
       </div>
 
       <section class="page-card">
-        <h1>Bed Availability</h1>
-        <p>Choose a ward category and review each combined room and bed entry. Every item includes `Booked` and `Available` radio buttons so the status can be seen clearly at a glance.</p>
+        <div class="toolbar">
+          <div>
+            <h1>Bed Availability</h1>
+            <p>Review live room and bed availability, switch between booked and available, and update each row when needed.</p>
+          </div>
+          <div class="filter-group">
+            <label for="statusFilter">Filter</label>
+            <select id="statusFilter">
+              <option value="all">All Beds</option>
+              <option value="available">Available Only</option>
+              <option value="booked">Booked Only</option>
+            </select>
+          </div>
+        </div>
       </section>
+
+      <div id="statusBanner" class="status-banner">Connecting to live bed availability data...</div>
 
       <section class="ward-grid">
         <article class="ward-card icu">
@@ -418,18 +583,6 @@
               <p>Critical care room and bed allocation.</p>
             </div>
           </div>
-
-          <form class="add-bed-form" data-ward="icu">
-            <div class="input-group">
-              <label for="icu-room-number">Room Number</label>
-              <input id="icu-room-number" name="room-number" type="text" placeholder="Enter room number" required />
-            </div>
-            <div class="input-group">
-              <label for="icu-bed-number">Bed Number</label>
-              <input id="icu-bed-number" name="bed-number" type="text" placeholder="Enter bed number" required />
-            </div>
-            <button class="submit-bed-btn" type="submit">Submit</button>
-          </form>
 
           <div class="bed-list" data-bed-list="icu">
             <div class="bed-row">
@@ -499,18 +652,6 @@
             </div>
           </div>
 
-          <form class="add-bed-form" data-ward="normal">
-            <div class="input-group">
-              <label for="normal-room-number">Room Number</label>
-              <input id="normal-room-number" name="room-number" type="text" placeholder="Enter room number" required />
-            </div>
-            <div class="input-group">
-              <label for="normal-bed-number">Bed Number</label>
-              <input id="normal-bed-number" name="bed-number" type="text" placeholder="Enter bed number" required />
-            </div>
-            <button class="submit-bed-btn" type="submit">Submit</button>
-          </form>
-
           <div class="bed-list" data-bed-list="normal">
             <div class="bed-row">
               <div class="bed-label">Room 201 - Bed 1</div>
@@ -570,10 +711,27 @@
           </div>
         </article>
       </section>
+
+      <section class="requests-card">
+        <h2>Pending Booking Requests</h2>
+        <p>Patients can request an available bed. Approval here is what turns that bed into a booked bed.</p>
+        <div id="requestList" class="request-list"></div>
+      </section>
     </section>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../hospital_backend/hospital_beds.js"></script>
   <script>
-    const STORAGE_KEY = "healthsphere-hospital-bed-availability";
+    const statusBanner = document.getElementById("statusBanner");
+    const statusFilter = document.getElementById("statusFilter");
+    const requestList = document.getElementById("requestList");
+    let allBeds = [];
+    let pendingRequests = [];
+
+    function setStatus(message, tone) {
+      statusBanner.textContent = message;
+      statusBanner.className = "status-banner" + (tone ? " " + tone : "");
+    }
 
     function parseSortValue(value) {
       const trimmed = value.trim();
@@ -614,7 +772,7 @@
       rows.forEach((row) => bedList.appendChild(row));
     }
 
-    function buildBedRow(ward, roomNumber, bedNumber, status) {
+    function buildBedRow(ward, roomNumber, bedNumber, status, id) {
       const safeWard = ward.toLowerCase();
       const safeRoom = roomNumber.trim().replace(/\s+/g, "-");
       const safeBed = bedNumber.trim().replace(/\s+/g, "-");
@@ -623,6 +781,7 @@
 
       const row = document.createElement("div");
       row.className = "bed-row";
+      row.dataset.id = id || "";
       row.dataset.ward = safeWard;
       row.dataset.roomNumber = roomNumber.trim();
       row.dataset.bedNumber = bedNumber.trim();
@@ -638,6 +797,7 @@
             <span>Available</span>
           </label>
         </div>
+        <button class="update-bed-btn" type="button">Update</button>
       `;
 
       return row;
@@ -660,38 +820,15 @@
       };
     }
 
-    function collectBedsFromDom() {
-      const state = {};
-
-      document.querySelectorAll("[data-bed-list]").forEach((bedList) => {
-        const ward = bedList.dataset.bedList;
-        const rows = Array.from(bedList.querySelectorAll(".bed-row"));
-
-        state[ward] = rows.map((row) => {
-          row.dataset.ward = ward;
-          return extractRowData(row);
-        });
-      });
-
-      return state;
-    }
-
-    function saveBeds(state) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
-
-    function loadBeds() {
-      const rawState = localStorage.getItem(STORAGE_KEY);
-
-      if (!rawState) {
-        return null;
-      }
-
-      try {
-        return JSON.parse(rawState);
-      } catch (error) {
-        return null;
-      }
+    function groupBedsByWard(beds) {
+      return (beds || []).reduce((state, bed) => {
+        const ward = bed.ward;
+        if (!state[ward]) {
+          state[ward] = [];
+        }
+        state[ward].push(bed);
+        return state;
+      }, {});
     }
 
     function renderBeds(state) {
@@ -701,69 +838,136 @@
 
         bedList.innerHTML = "";
 
+        if (!beds.length) {
+          bedList.innerHTML = '<div class="empty-list">No beds match this filter in this ward.</div>';
+          return;
+        }
+
         beds.forEach((bed) => {
-          bedList.appendChild(buildBedRow(ward, bed.roomNumber, bed.bedNumber, bed.status));
+          bedList.appendChild(buildBedRow(ward, bed.roomNumber, bed.bedNumber, bed.status, bed.id));
         });
 
         sortBedList(bedList);
       });
     }
 
-    function persistCurrentBeds() {
-      saveBeds(collectBedsFromDom());
+    function getFilteredBeds() {
+      const selectedFilter = statusFilter.value;
+      if (selectedFilter === "all") {
+        return allBeds.slice();
+      }
+      return allBeds.filter((bed) => bed.status === selectedFilter);
     }
 
-    document.querySelectorAll(".bed-row").forEach((row) => {
-      const label = row.querySelector(".bed-label");
-      const match = label ? label.textContent.match(/Room\s+(.*?)\s*-\s*Bed\s+(.*)/i) : null;
+    function refreshVisibleBeds() {
+      renderBeds(groupBedsByWard(getFilteredBeds()));
+    }
 
-      if (match) {
-        row.dataset.roomNumber = match[1].trim();
-        row.dataset.bedNumber = match[2].trim();
+    function renderPendingRequests() {
+      if (!pendingRequests.length) {
+        requestList.innerHTML = '<div class="empty-list">No pending bed booking requests right now.</div>';
+        return;
       }
-    });
 
-    const savedBeds = loadBeds();
-
-    if (savedBeds) {
-      renderBeds(savedBeds);
-    } else {
-      document.querySelectorAll("[data-bed-list]").forEach((bedList) => {
-        sortBedList(bedList);
-      });
-      persistCurrentBeds();
+      requestList.innerHTML = pendingRequests.map((request) => `
+        <div class="request-row">
+          <div class="request-meta">
+            <strong>${request.patientName || "Patient"} requested Room ${request.roomNumber} - Bed ${request.bedNumber}</strong>
+            <small>${request.ward.toUpperCase()} ward</small>
+            <small>${request.patientEmail || "No email available"}</small>
+          </div>
+          <button class="approve-request-btn" type="button" data-approve-request-id="${request.id}">Approve</button>
+        </div>
+      `).join("");
     }
 
     document.querySelectorAll("[data-bed-list]").forEach((bedList) => {
-      bedList.addEventListener("change", (event) => {
-        if (event.target.matches('input[type="radio"]')) {
-          persistCurrentBeds();
-        }
-      });
-    });
-
-    document.querySelectorAll(".add-bed-form").forEach((form) => {
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-
-        const ward = form.dataset.ward;
-        const roomInput = form.elements["room-number"];
-        const bedInput = form.elements["bed-number"];
-        const roomNumber = roomInput.value.trim();
-        const bedNumber = bedInput.value.trim();
-
-        if (!roomNumber || !bedNumber) {
+      bedList.addEventListener("click", async (event) => {
+        if (!event.target.matches(".update-bed-btn")) {
           return;
         }
 
-        const bedList = document.querySelector(`[data-bed-list="${ward}"]`);
-        bedList.appendChild(buildBedRow(ward, roomNumber, bedNumber, "available"));
-        sortBedList(bedList);
-        persistCurrentBeds();
-        form.reset();
-        roomInput.focus();
+        const row = event.target.closest(".bed-row");
+        const bedId = row ? row.dataset.id : "";
+        const checkedInput = row ? row.querySelector('input[type="radio"]:checked') : null;
+
+        if (!bedId || !checkedInput) {
+          setStatus("This bed row is missing the information needed to update.", "error");
+          return;
+        }
+
+        event.target.disabled = true;
+
+        try {
+          const updatedBed = await updateHospitalBedStatus(bedId, checkedInput.value);
+          allBeds = allBeds.map((bed) => bed.id === updatedBed.id ? updatedBed : bed);
+          refreshVisibleBeds();
+          setStatus(
+            "Updated " + updatedBed.ward.toUpperCase() + " room " + updatedBed.roomNumber + " bed " + updatedBed.bedNumber + " to " + updatedBed.status + ".",
+            "success"
+          );
+        } catch (error) {
+          console.error("Error updating bed status:", error);
+          event.target.disabled = false;
+          setStatus(error.message || "Unable to update bed status.", "error");
+        }
       });
     });
+
+    requestList.addEventListener("click", async (event) => {
+      const approveButton = event.target.closest("[data-approve-request-id]");
+      if (!approveButton) {
+        return;
+      }
+
+      const requestId = approveButton.getAttribute("data-approve-request-id");
+      approveButton.disabled = true;
+
+      try {
+        const approvedRequest = await approveBedBookingRequest(requestId);
+        allBeds = await loadHospitalBeds();
+        pendingRequests = await loadBedBookingRequests("pending");
+        refreshVisibleBeds();
+        renderPendingRequests();
+        setStatus(
+          "Approved booking for " + (approvedRequest.patientName || "Patient") + " in " + approvedRequest.ward.toUpperCase() + " room " + approvedRequest.roomNumber + " bed " + approvedRequest.bedNumber + ".",
+          "success"
+        );
+      } catch (error) {
+        console.error("Error approving bed request:", error);
+        approveButton.disabled = false;
+        setStatus(error.message || "Unable to approve bed request.", "error");
+      }
+    });
+
+    statusFilter.addEventListener("change", () => {
+      refreshVisibleBeds();
+      setStatus(
+        statusFilter.value === "all"
+          ? "Showing all beds."
+          : "Showing only " + statusFilter.value + " beds.",
+        "success"
+      );
+    });
+
+    async function initBeds() {
+      try {
+        allBeds = await loadHospitalBeds();
+        pendingRequests = await loadBedBookingRequests("pending");
+        refreshVisibleBeds();
+        renderPendingRequests();
+        setStatus("Live hospital bed data loaded from Supabase.", "success");
+      } catch (error) {
+        console.error("Error loading hospital beds:", error);
+        setStatus(
+          (error.message || "Unable to connect to hospital bed data.") +
+            " Make sure the Supabase table 'hospital_beds' exists and has records.",
+          "error"
+        );
+      }
+    }
+
+    initBeds();
   </script>
 </body>
 </html>

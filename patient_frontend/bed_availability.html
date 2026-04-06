@@ -6,6 +6,156 @@
   <title>Bed Availability - HealthSphere</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .hs-bed-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #eaf8ef;
+      color: #1f8c4b;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .hs-bed-filter {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: #f4f8fd;
+      border: 1px solid #dce6f2;
+    }
+
+    .hs-bed-filter label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #51698f;
+    }
+
+    .hs-bed-filter select {
+      border: 1px solid #dce6f2;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: inherit;
+      color: #17233d;
+      background: #fff;
+    }
+
+    .hs-bed-grid {
+      margin-top: 18px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .hs-bed-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 16px 18px;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #ffffff, #f7fbff);
+      border: 1px solid #dce6f2;
+      box-shadow: 0 10px 24px rgba(23, 35, 61, 0.05);
+    }
+
+    .hs-bed-meta h4 {
+      font-size: 16px;
+      color: #17233d;
+      margin-bottom: 4px;
+    }
+
+    .hs-bed-meta p {
+      color: #5d6f8f;
+      font-size: 14px;
+    }
+
+    .hs-bed-empty {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 18px;
+      border: 1px dashed #c7d7e7;
+      background: #f8fbff;
+      color: #5d6f8f;
+      text-align: center;
+    }
+
+    .hs-booking-message {
+      margin-top: 18px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid #cfe6d7;
+      background: linear-gradient(180deg, #eefaf2, #f8fdf9);
+      color: #1f7f46;
+    }
+
+    .hs-booking-message strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    .hs-booking-message p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .hs-bed-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hs-bed-btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #0b4ea2, #17a2b8);
+      cursor: pointer;
+      box-shadow: 0 12px 22px rgba(11, 78, 162, 0.18);
+    }
+
+    .hs-bed-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .hs-request-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .hs-request-pill.pending {
+      background: #fff5df;
+      color: #a56b00;
+    }
+
+    .hs-request-pill.approved {
+      background: #e8f8ee;
+      color: #1f8c4b;
+    }
+  </style>
 </head>
 <body>
   <main class="single-wrap">
@@ -69,18 +219,215 @@
                 <div class="hs-location-icon"><i class="fa-solid fa-bed"></i></div>
                 <div>
                   <h4>Hospital Beds</h4>
-                  
+                  <p id="bedStatusText">Showing live available beds from the hospital.</p>
                 </div>
               </div>
-              <div class="hs-search-input">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input class="input" type="text" placeholder="Search hospital" />
+              <div class="hs-bed-filter">
+                <label for="wardFilter">Ward Filter</label>
+                <select id="wardFilter">
+                  <option value="all">All Wards</option>
+                  <option value="icu">ICU</option>
+                  <option value="normal">Normal</option>
+                </select>
               </div>
+              <div id="bookingMessage" class="hs-booking-message" hidden></div>
+              <div id="bedList" class="hs-bed-grid" aria-live="polite"></div>
+              <div id="bedEmpty" class="hs-bed-empty" hidden>No available beds found right now.</div>
             </section>
           </section>
         </div>
       </div>
     </article>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../hospital_backend/hospital_beds.js"></script>
+  <script>
+    const wardFilter = document.getElementById("wardFilter");
+    const bedList = document.getElementById("bedList");
+    const bedEmpty = document.getElementById("bedEmpty");
+    const bedStatusText = document.getElementById("bedStatusText");
+    const bookingMessage = document.getElementById("bookingMessage");
+    let availableBeds = [];
+    let patientRequests = [];
+    let currentPatient = null;
+
+    function getSupabaseClient() {
+      if (typeof supabase === "undefined" || !supabase.createClient) {
+        return null;
+      }
+      return supabase.createClient(
+        "https://nfmzosvedtieicnfbmlh.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc"
+      );
+    }
+
+    function formatWardLabel(ward) {
+      return String(ward || "").toLowerCase() === "icu" ? "ICU" : "Normal";
+    }
+
+    function findRequestForBed(bedId) {
+      return patientRequests.find((request) => request.bedId === bedId && (request.status === "pending" || request.status === "approved")) || null;
+    }
+
+    function getApprovedRequest() {
+      return patientRequests.find((request) => request.status === "approved") || null;
+    }
+
+    function renderBookingMessage() {
+      const approvedRequest = getApprovedRequest();
+
+      if (!approvedRequest) {
+        bookingMessage.hidden = true;
+        bookingMessage.innerHTML = "";
+        return;
+      }
+
+      bookingMessage.hidden = false;
+      bookingMessage.innerHTML = `
+        <strong>Your bed is booked.</strong>
+        <p>Hospital approved your booking for ${formatWardLabel(approvedRequest.ward)} ward, Room ${approvedRequest.roomNumber} - Bed ${approvedRequest.bedNumber}.</p>
+      `;
+    }
+
+    function renderBeds() {
+      const selectedWard = wardFilter.value;
+      const filteredBeds = availableBeds.filter((bed) => {
+        return selectedWard === "all" ? true : bed.ward === selectedWard;
+      });
+
+      if (!filteredBeds.length) {
+        bedList.innerHTML = "";
+        bedEmpty.hidden = false;
+        bedStatusText.textContent = getApprovedRequest()
+          ? "Your approved bed is confirmed below. No other available beds match this filter right now."
+          : "No available beds match the selected filter right now.";
+        return;
+      }
+
+      bedEmpty.hidden = true;
+      bedStatusText.textContent =
+        selectedWard === "all"
+          ? "Showing all currently available beds from the hospital."
+          : "Showing currently available beds in the " + formatWardLabel(selectedWard) + " ward.";
+
+      bedList.innerHTML = filteredBeds.map((bed) => `
+        <article class="hs-bed-card">
+          <div class="hs-bed-meta">
+            <h4>Room ${bed.roomNumber} - Bed ${bed.bedNumber}</h4>
+            <p>${formatWardLabel(bed.ward)} ward</p>
+          </div>
+          <div class="hs-bed-actions">
+            <div class="hs-bed-status">Available</div>
+            ${(() => {
+              const request = findRequestForBed(bed.id);
+              if (request) {
+                return `<div class="hs-request-pill ${request.status}">${request.status === "approved" ? "Approved" : "Pending Request"}</div>`;
+              }
+              return `<button class="hs-bed-btn" type="button" data-request-bed-id="${bed.id}">Request Bed</button>`;
+            })()}
+          </div>
+        </article>
+      `).join("");
+    }
+
+    async function loadCurrentPatient() {
+      const client = getSupabaseClient();
+      if (!client) {
+        return null;
+      }
+
+      const userResult = await client.auth.getUser();
+      if (userResult.error || !userResult.data || !userResult.data.user) {
+        return null;
+      }
+
+      const user = userResult.data.user;
+      const profileResult = await client
+        .from("patient_profile")
+        .select("user_id,name,email")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (profileResult.error) {
+        throw new Error(profileResult.error.message || "Unable to load patient profile.");
+      }
+
+      return {
+        userId: user.id,
+        name: (profileResult.data && profileResult.data.name) || user.email || "Patient",
+        email: (profileResult.data && profileResult.data.email) || user.email || ""
+      };
+    }
+
+    async function initBedAvailability() {
+      try {
+        currentPatient = await loadCurrentPatient();
+        const beds = await loadHospitalBeds();
+        availableBeds = beds.filter((bed) => bed.status === "available");
+        patientRequests = currentPatient ? await loadPatientBedBookingRequests(currentPatient.userId) : [];
+        renderBookingMessage();
+        renderBeds();
+        if (!currentPatient) {
+          bedStatusText.textContent = "Login to request a bed. Available beds are shown live to all patients.";
+        }
+      } catch (error) {
+        console.error("Error loading patient bed availability:", error);
+        bedList.innerHTML = "";
+        bedEmpty.hidden = false;
+        bedStatusText.textContent = "Live bed data is unavailable right now.";
+      }
+    }
+
+    async function refreshPatientBedState() {
+      if (!currentPatient) {
+        return;
+      }
+
+      try {
+        const beds = await loadHospitalBeds();
+        availableBeds = beds.filter((bed) => bed.status === "available");
+        patientRequests = await loadPatientBedBookingRequests(currentPatient.userId);
+        renderBookingMessage();
+        renderBeds();
+      } catch (error) {
+        console.error("Error refreshing patient bed state:", error);
+      }
+    }
+
+    bedList.addEventListener("click", async (event) => {
+      const requestButton = event.target.closest("[data-request-bed-id]");
+      if (!requestButton) {
+        return;
+      }
+
+      if (!currentPatient) {
+        bedStatusText.textContent = "Please login before requesting a bed.";
+        return;
+      }
+
+      requestButton.disabled = true;
+
+      try {
+        const request = await createBedBookingRequest({
+          bedId: requestButton.getAttribute("data-request-bed-id"),
+          patientUserId: currentPatient.userId,
+          patientName: currentPatient.name,
+          patientEmail: currentPatient.email
+        });
+        patientRequests = [request].concat(patientRequests.filter((item) => item.id !== request.id));
+        renderBookingMessage();
+        renderBeds();
+        bedStatusText.textContent = "Your request was sent to the hospital and is waiting for approval.";
+      } catch (error) {
+        console.error("Error requesting bed:", error);
+        requestButton.disabled = false;
+        bedStatusText.textContent = error.message || "Unable to submit bed request right now.";
+      }
+    });
+
+    wardFilter.addEventListener("change", renderBeds);
+    initBedAvailability();
+    window.setInterval(refreshPatientBedState, 15000);
+  </script>
 </body>
 </html>
