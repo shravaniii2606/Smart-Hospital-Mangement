@@ -164,7 +164,6 @@
       const safeBed = bedNumber.trim().replace(/\s+/g, "-");
       const radioName = safeWard + "-room-" + safeRoom + "-bed-" + safeBed;
       const selectedStatus = status === "booked" ? "booked" : "available";
-
       const row = document.createElement("div");
       row.className = "bed-row";
       row.dataset.id = id || "";

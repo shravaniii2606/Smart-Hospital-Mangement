@@ -370,21 +370,44 @@
       async function getNextTokenNumber() {
         const { data, error } = await supabaseClient
           .from("appointments")
-          .select("token, appointment_date, appointment_time")
-          .eq("doctor_id", selectedDoctor.doc_id)
-          .eq("appointment_date", dateInput.value);
+          .select("token");
 
         if (error) {
           throw error;
         }
 
-        const sortedAppointments = (data || []).slice().sort(compareAppointments);
-        const maxToken = sortedAppointments.reduce((highest, appointment) => {
+        const maxToken = (data || []).reduce((highest, appointment) => {
           const value = Number(appointment.token);
           return Number.isNaN(value) ? highest : Math.max(highest, value);
         }, 0);
 
         return String(maxToken + 1);
+      }
+
+      function isUniqueTokenError(error) {
+        const message = (error?.message || "").toLowerCase();
+        return error?.code === "23505" || message.includes("duplicate") || message.includes("unique");
+      }
+
+      async function insertAppointmentWithUniqueToken(payload, maxAttempts = 3) {
+        let token = payload.token;
+        for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+          const { error } = await supabaseClient
+            .from("appointments")
+            .insert({ ...payload, token });
+
+          if (!error) {
+            return token;
+          }
+
+          if (!isUniqueTokenError(error)) {
+            throw error;
+          }
+
+          token = await getNextTokenNumber();
+        }
+
+        throw new Error("Unable to reserve a unique token. Please try again.");
       }
 
       form.addEventListener("submit", async (event) => {
@@ -472,12 +495,12 @@
           status: "pending"
         };
 
-        const insertResult = await supabaseClient
-          .from("appointments")
-          .insert(payload);
-
-        if (insertResult.error) {
-          showError(insertResult.error.message || "Unable to save appointment.");
+        let confirmedToken = payload.token;
+        try {
+          confirmedToken = await insertAppointmentWithUniqueToken(payload);
+          tokenEl.textContent = confirmedToken;
+        } catch (insertError) {
+          showError(insertError.message || "Unable to save appointment.");
           return;
         }
 
