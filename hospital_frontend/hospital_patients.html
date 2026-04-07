@@ -70,12 +70,7 @@
       </div>
       <section class="page-card">
         <h1>Patients</h1>
-        <p>Browse and search all registered patients stored in Supabase.</p>
         <div class="search-wrap">
-          <div class="search-note">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <span>Showing all registered patients from the live database</span>
-          </div>
           <input id="patientSearch" class="search-bar" type="text" placeholder="Search patient name" />
         </div>
         <div id="resultGrid" class="result-grid" aria-live="polite"></div>
@@ -97,10 +92,8 @@
           <div class="patient-avatar"><i class="fa-solid fa-user"></i></div>
           <div>
             <h3>${patient.name}</h3>
-            <p>${patient.diagnosis}</p>
           </div>
           <div class="patient-meta">
-            <span><i class="fa-solid fa-cake-candles"></i>Age ${patient.age || "-"}</span>
             <span><i class="fa-solid fa-droplet"></i>${patient.bloodGroup || "-"}</span>
             <span><i class="fa-solid fa-phone"></i>${patient.phone || "-"}</span>
           </div>
