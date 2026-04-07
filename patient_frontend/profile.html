@@ -70,7 +70,7 @@
                 </div>
               </div>
 
-              <div class="hs-profile-grid">
+              <div id="profileView" class="hs-profile-grid">
                 <div>
                   <p class="hs-label">Name</p>
                   <h4 id="profileName">-</h4>
@@ -107,6 +107,68 @@
                   <p class="hs-label">Weight</p>
                   <h4 id="profileWeight">-</h4>
                 </div>
+              </div>
+
+              <form id="profileEditForm" class="hs-profile-edit-form" hidden>
+                <div class="hs-profile-grid">
+                  <div class="hs-profile-field">
+                    <label class="hs-label" for="profileEditName">Name</label>
+                    <input class="input" type="text" id="profileEditName" placeholder="Enter full name" />
+                  </div>
+                  <div class="hs-profile-field">
+                    <label class="hs-label" for="profileEditEmail">Email</label>
+                    <input class="input" type="email" id="profileEditEmail" readonly />
+                  </div>
+                  <div class="hs-profile-field">
+                    <label class="hs-label" for="profileEditPhone">Phone</label>
+                    <input class="input" type="tel" id="profileEditPhone" placeholder="Enter phone number" />
+                  </div>
+                  <div class="hs-profile-field">
+                    <label class="hs-label" for="profileEditGender">Gender</label>
+                    <select class="input" id="profileEditGender">
+                      <option value="">Select gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                  <div class="hs-profile-field">
+                    <label class="hs-label" for="profileEditDob">Date Of Birth</label>
+                    <input class="input" type="date" id="profileEditDob" />
+                  </div>
+                  <div class="hs-profile-field">
+                    <label class="hs-label" for="profileEditAge">Age</label>
+                    <input class="input" type="text" id="profileEditAge" readonly />
+                  </div>
+                  <div class="hs-profile-field">
+                    <label class="hs-label" for="profileEditBlood">Blood Group</label>
+                    <select class="input" id="profileEditBlood">
+                      <option value="">Select blood group</option>
+                      <option value="A+">A+</option>
+                      <option value="A-">A-</option>
+                      <option value="B+">B+</option>
+                      <option value="B-">B-</option>
+                      <option value="AB+">AB+</option>
+                      <option value="AB-">AB-</option>
+                      <option value="O+">O+</option>
+                      <option value="O-">O-</option>
+                    </select>
+                  </div>
+                  <div class="hs-profile-field">
+                    <label class="hs-label" for="profileEditHeight">Height (ft)</label>
+                    <input class="input" type="number" id="profileEditHeight" placeholder="Enter height in ft" step="0.1" min="0" />
+                  </div>
+                  <div class="hs-profile-field">
+                    <label class="hs-label" for="profileEditWeight">Weight (kg)</label>
+                    <input class="input" type="number" id="profileEditWeight" placeholder="Enter weight in kg" step="0.1" min="0" />
+                  </div>
+                </div>
+              </form>
+
+              <div class="hs-profile-actions">
+                <button id="profileEditBtn" class="btn" type="button">Edit Profile</button>
+                <button id="profileSaveBtn" class="btn" type="button" hidden>Save Changes</button>
+                <button id="profileCancelBtn" class="btn btn-secondary" type="button" hidden>Cancel</button>
               </div>
 
               <button id="logoutBtn" class="btn btn-danger" type="button">Logout</button>
