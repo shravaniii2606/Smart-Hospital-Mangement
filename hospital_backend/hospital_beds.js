@@ -18,6 +18,17 @@ function normalizeStatus(value) {
   return String(value || "").trim().toLowerCase() === "booked" ? "booked" : "available";
 }
 
+<<<<<<< HEAD
+=======
+function normalizeRequestStatus(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (normalized === "approved" || normalized === "rejected") {
+    return normalized;
+  }
+  return "pending";
+}
+
+>>>>>>> 3a44a57e14b8d9d6dcd00350c2336a04326897ec
 function normalizeBedRecord(row) {
   return {
     id: row.id,
@@ -28,6 +39,7 @@ function normalizeBedRecord(row) {
   };
 }
 
+<<<<<<< HEAD
 function normalizeRequestStatus(value) {
   const normalized = String(value || "").trim().toLowerCase();
   if (normalized === "approved" || normalized === "rejected") {
@@ -36,6 +48,8 @@ function normalizeRequestStatus(value) {
   return "pending";
 }
 
+=======
+>>>>>>> 3a44a57e14b8d9d6dcd00350c2336a04326897ec
 function normalizeBedRequest(row) {
   return {
     id: row.id,
@@ -92,6 +106,7 @@ async function loadHospitalBeds() {
   return (data || []).map(normalizeBedRecord).sort(bedSort);
 }
 
+<<<<<<< HEAD
 async function findHospitalBed(client, ward, roomNumber, bedNumber) {
   const { data, error } = await client
     .from(HOSPITAL_BEDS_TABLE)
@@ -109,6 +124,8 @@ async function findHospitalBed(client, ward, roomNumber, bedNumber) {
   return data ? normalizeBedRecord(data) : null;
 }
 
+=======
+>>>>>>> 3a44a57e14b8d9d6dcd00350c2336a04326897ec
 async function getHospitalBedById(id) {
   const client = getSupabaseClient();
   const { data, error } = await client
@@ -125,6 +142,7 @@ async function getHospitalBedById(id) {
   return data ? normalizeBedRecord(data) : null;
 }
 
+<<<<<<< HEAD
 async function createHospitalBed({ ward, roomNumber, bedNumber, status }) {
   const client = getSupabaseClient();
   const normalizedWard = normalizeWard(ward);
@@ -160,6 +178,8 @@ async function createHospitalBed({ ward, roomNumber, bedNumber, status }) {
   return normalizeBedRecord(data);
 }
 
+=======
+>>>>>>> 3a44a57e14b8d9d6dcd00350c2336a04326897ec
 async function updateHospitalBedStatus(id, status) {
   const client = getSupabaseClient();
   const { data, error } = await client
@@ -331,6 +351,7 @@ async function approveBedBookingRequest(requestId) {
 
   return normalizeBedRequest(approvedData);
 }
+<<<<<<< HEAD
 
 async function seedHospitalBeds(defaultBeds) {
   const currentBeds = await loadHospitalBeds();
@@ -358,3 +379,5 @@ async function seedHospitalBeds(defaultBeds) {
 
   return loadHospitalBeds();
 }
+=======
+>>>>>>> 3a44a57e14b8d9d6dcd00350c2336a04326897ec

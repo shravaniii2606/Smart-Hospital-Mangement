@@ -36,12 +36,7 @@
             <a class="hs-side-link active" href="emergency.html">
               <span><i class="fa-solid fa-truck-medical"></i></span>
               <small>Emergency</small>
-            </a>
-            <a class="hs-side-link" href="profile.html">
-              <span><i class="fa-regular fa-user"></i></span>
-              <small>Profile</small>
-            </a>
-            <a class="hs-side-link" href="reports.html">
+            </a><a class="hs-side-link" href="reports.html">
               <span><i class="fa-solid fa-file-medical"></i></span>
               <small>Reports</small>
             </a>
@@ -49,7 +44,12 @@
               <span><i class="fa-solid fa-prescription-bottle-medical"></i></span>
               <small>Prescriptions</small>
             </a>
-          </nav>
+          
+            <a class="hs-side-link" href="profile.html">
+              <span><i class="fa-regular fa-user"></i></span>
+              <small>Profile</small>
+            </a>
+            </nav>
 
           <section class="hs-main">
             <div class="hs-brand-row">
@@ -64,6 +64,16 @@
               </div>
             </header>
 
+            <section id="emergencyLocationCard" class="hs-location-card">
+              <div class="hs-location-row">
+                <div class="hs-location-icon"><i class="fa-solid fa-location-dot"></i></div>
+                <div>
+                  <h4>Share Your Location</h4>
+                  <p id="emergencyLocationStatus">We need your location to dispatch help quickly.</p>
+                </div>
+              </div>
+              <button id="emergencyLocationBtn" class="btn btn-secondary" type="button">Allow Location Access</button>
+            </section>
             <section class="hs-location-card">
               <div class="hs-location-row">
                 <div class="hs-location-icon"><i class="fa-solid fa-truck-medical"></i></div>
@@ -72,11 +82,165 @@
                   <p>Emergency actions will appear here.</p>
                 </div>
               </div>
+              <div class="hs-emergency-actions">
+                <a class="hs-emergency-call" href="ambulance_hospitals.html">
+                  <i class="fa-solid fa-phone-volume" aria-hidden="true"></i>
+                  <span>Call Ambulance</span>
+                </a>
+                <p class="hs-emergency-note">Connect to the nearest emergency dispatch team.</p>
+              </div>
             </section>
+
+            <section class="hs-location-card">
+              <div class="hs-location-row">
+                <div class="hs-location-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+                <div>
+                  <h4>Previous Ambulance Requests</h4>
+                  <p>Recent requests and their status.</p>
+                </div>
+              </div>
+              <div id="ambulanceRequestsList" class="hs-recent-list" style="margin-top: 12px;"></div>
+              <div id="ambulanceRequestsEmpty" class="hs-recent-empty" style="display: none;">
+                No ambulance requests yet.
+              </div>
+            </section>
+
+            
+
+            
           </section>
         </div>
       </div>
     </article>
   </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    (function () {
+      var SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
+      var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
+
+      function getSupabaseClient() {
+        if (typeof supabase === "undefined" || !supabase.createClient) {
+          return null;
+        }
+        return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+
+      function formatDateTime(isoString) {
+        if (!isoString) return "Date: - · Time: -";
+        var date = new Date(isoString);
+        if (Number.isNaN(date.getTime())) return "Date: - · Time: -";
+        var datePart = date.toISOString().slice(0, 10);
+        var timePart = date.toTimeString().slice(0, 5);
+        return "Date: " + datePart + " · Time: " + timePart;
+      }
+
+      function statusClass(status) {
+        if (!status) return "pending";
+        var normalized = String(status).toLowerCase();
+        if (normalized === "confirmed") return "confirmed";
+        if (normalized === "cancelled") return "cancelled";
+        return "pending";
+      }
+
+      async function loadAmbulanceRequests() {
+        var listEl = document.getElementById("ambulanceRequestsList");
+        var emptyEl = document.getElementById("ambulanceRequestsEmpty");
+        if (!listEl || !emptyEl) return;
+
+        var client = getSupabaseClient();
+        if (!client) {
+          emptyEl.style.display = "block";
+          return;
+        }
+
+        var userResult = await client.auth.getUser();
+        if (userResult.error || !userResult.data || !userResult.data.user) {
+          emptyEl.style.display = "block";
+          return;
+        }
+
+        var result = await client
+          .from("ambulance_requests")
+          .select("*")
+          .eq("user_id", userResult.data.user.id)
+          .order("created_at", { ascending: false })
+          .limit(4);
+
+        if (result.error || !result.data || result.data.length === 0) {
+          listEl.innerHTML = "";
+          emptyEl.style.display = "block";
+          return;
+        }
+
+        emptyEl.style.display = "none";
+        listEl.innerHTML = result.data
+          .map(function (req) {
+            var status = statusClass(req.status);
+            var label = req.status ? String(req.status) : "pending";
+            var displayStatus = label.charAt(0).toUpperCase() + label.slice(1);
+            return (
+              "<div class=\"hs-recent-item\">" +
+              "<div>" +
+              "<strong>" +
+              (req.hospital_name || "Hospital") +
+              "</strong>" +
+              "<span>" +
+              formatDateTime(req.created_at) +
+              "</span>" +
+              "<span class=\"hs-status " +
+              status +
+              "\">" +
+              displayStatus +
+              "</span>" +
+              "</div>" +
+              "</div>"
+            );
+          })
+          .join("");
+      }
+
+      loadAmbulanceRequests();
+    })();
+  </script>
+  <script>
+    (function () {
+      var locationBtn = document.getElementById("emergencyLocationBtn");
+      var statusEl = document.getElementById("emergencyLocationStatus");
+      var locationCard = document.getElementById("emergencyLocationCard");
+
+      function setStatus(text) {
+        if (!statusEl) return;
+        statusEl.textContent = text;
+      }
+
+      if (!navigator.geolocation) {
+        setStatus("Location access is not supported in this browser.");
+        if (locationBtn) {
+          locationBtn.disabled = true;
+        }
+        return;
+      }
+
+      if (locationBtn) {
+        locationBtn.addEventListener("click", function () {
+          setStatus("Requesting location...");
+          navigator.geolocation.getCurrentPosition(
+            function () {
+              setStatus("Location shared. Dispatch can locate you faster now.");
+              if (locationCard) {
+                locationCard.style.display = "none";
+              }
+            },
+            function () {
+              setStatus("Location access denied. You can still call for help.");
+            }
+          );
+        });
+      }
+    })();
+  </script>
 </body>
 </html>
+

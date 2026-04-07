@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Home - HealthSphere</title>
+  <title>City Hospital - HealthSphere</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -13,7 +13,7 @@
       <div class="body">
         <div class="hs-layout">
           <nav class="hs-sidebar" aria-label="Home sections">
-            <a class="hs-side-link active" href="patient_home.html">
+            <a class="hs-side-link" href="patient_home.html">
               <span><i class="fa-solid fa-house"></i></span>
               <small>Home</small>
             </a>
@@ -25,7 +25,7 @@
               <span><i class="fa-solid fa-user-doctor"></i></span>
               <small>Find Doctors</small>
             </a>
-            <a class="hs-side-link" href="bed_availability.html">
+            <a class="hs-side-link active" href="bed_availability.html">
               <span><i class="fa-solid fa-bed"></i></span>
               <small>Bed Availability</small>
             </a>
@@ -55,44 +55,41 @@
             <div class="hs-brand-row">
               <div class="hs-brand-logo"><i class="fa-solid fa-heart-pulse"></i></div>
               <div class="hs-brand-name">HealthSphere</div>
-              <button id="logoutBtn" class="logout-link" type="button">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span>Logout</span>
-              </button>
             </div>
 
             <header class="hs-greet-row">
               <div>
-                <p class="hs-hello">Hello,</p>
-                <h2 class="hs-name" id="welcomeName">John</h2>
+                <p class="hs-hello">Hospital</p>
+                <h2 class="hs-name">City Hospital</h2>
               </div>
             </header>
 
             <section class="hs-location-card">
               <div class="hs-location-row">
-                <div class="hs-location-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="hs-location-icon"><i class="fa-solid fa-location-dot"></i></div>
                 <div>
-                  <h4>Upcoming Appointments</h4>
-                  <p>Your next visits appear here.</p>
+                  <h4>M.G. Road, Bengaluru</h4>
+                  <p>Multispeciality care with 24/7 emergency support.</p>
                 </div>
               </div>
-              <div id="homeAppointmentsList" class="hs-recent-list" style="margin-top: 12px;"></div>
-              <div id="homeAppointmentsEmpty" class="hs-recent-empty" style="display: none;">
-                No upcoming appointments.
-              </div>
-              <a class="btn btn-secondary" href="appointments.html">View all appointments</a>
             </section>
+
+            <section class="hs-location-card">
+              <div class="hs-location-row">
+                <div class="hs-location-icon"><i class="fa-solid fa-bed"></i></div>
+                <div>
+                  <h4>Bed Availability</h4>
+                  <p>General: 14 | ICU: 4 | Pediatric: 6</p>
+                </div>
+              </div>
+            </section>
+
+            <a class="btn" href="bed_availability.html">Back to Bed Availability</a>
           </section>
         </div>
       </div>
-
     </article>
   </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js"></script>
 </body>
 </html>
-
-
 
