@@ -79,10 +79,10 @@
             <h3>Appointments Booked</h3>
             <p>Open all appointments scheduled for this patient.</p>
           </a>
-          <a id="reportsCard" class="action-card" href="#">
-            <i class="fa-solid fa-file-medical"></i>
-            <h3>Reports</h3>
-            <p>View current and previous reports, and add a new report file.</p>
+          <a id="formCard" class="action-card" href="#">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <h3>Form</h3>
+            <p>Open the hospital form section for this patient.</p>
           </a>
           <a id="prescriptionsCard" class="action-card" href="#">
             <i class="fa-solid fa-prescription-bottle-medical"></i>
@@ -125,10 +125,12 @@
       document.getElementById("patientEmail").textContent = patient.email;
       document.getElementById("patientId").textContent = patient.id;
       document.getElementById("appointmentsCard").href = `hospital_patient_appointments.html?id=${patient.id}`;
-      document.getElementById("reportsCard").href = `hospital_patient_reports.html?id=${patient.id}`;
+      document.getElementById("formCard").href = `hospital_form.html?id=${patient.id}`;
       document.getElementById("prescriptionsCard").href = `hospital_patient_prescriptions.html?id=${patient.id}`;
     })();
   </script>
 </body>
 </html>
+
+
 

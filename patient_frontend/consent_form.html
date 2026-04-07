@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consent Form - HealthSphere</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .hs-form-wrap { margin-top: 10px; display: grid; gap: 16px; }
+    .hs-form-card { background:#fff; border:1px solid #dce6f2; border-radius:20px; padding:18px; box-shadow:0 12px 24px rgba(23,35,61,.06); }
+    .hs-form-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; }
+    .hs-field { display:grid; gap:8px; }
+    .hs-field label { font-size:13px; font-weight:700; color:#51698f; }
+    .hs-input, .hs-textarea, .hs-select { border:1px solid #dce6f2; border-radius:14px; padding:12px 14px; font:inherit; color:#17233d; background:#fff; }
+    .hs-textarea { min-height: 110px; resize: vertical; }
+    .hs-input[readonly], .hs-select[disabled] { background:#f6f9fd; color:#7a8ca8; }
+    .hs-actions { display:flex; gap:12px; flex-wrap:wrap; }
+    .hs-submit { border:0; border-radius:14px; padding:12px 16px; font-size:14px; font-weight:700; color:#fff; background:linear-gradient(135deg, #0b4ea2, #17a2b8); cursor:pointer; box-shadow:0 12px 22px rgba(11,78,162,.18); }
+    .hs-note { font-size:13px; color:#5d6f8f; }
+    .hs-consent-list { display:grid; gap:12px; }
+    .hs-consent-item { border:1px solid #dce6f2; border-radius:16px; padding:14px; background:#f8fbff; }
+    .hs-consent-item h4 { font-size:15px; margin-bottom:6px; }
+    .hs-signature-pad { border:1px dashed #c7d7e7; border-radius:16px; padding:12px; background:#f8fbff; display:grid; gap:10px; }
+    .hs-signature-canvas { width:100%; height:160px; border:1px solid #dce6f2; border-radius:12px; background:#fff; cursor:crosshair; }
+    .hs-signature-actions { display:flex; gap:10px; flex-wrap:wrap; }
+    .hs-secondary { border:1px solid #cfe0f7; background:#eef4ff; color:#0b4ea2; }
+    @media (max-width: 760px) { .hs-form-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main class="single-wrap">
+    <article class="phone hs-home">
+      <div class="body">
+        <div class="hs-layout">
+          <nav class="hs-sidebar" aria-label="Home sections">
+            <a class="hs-side-link" href="patient_home.html">
+              <span><i class="fa-solid fa-house"></i></span>
+              <small>Home</small>
+            </a>
+            <a class="hs-side-link" href="ai.html">
+              <span><i class="fa-solid fa-robot"></i></span>
+              <small>AI Chatbot</small>
+            </a>
+            <a class="hs-side-link" href="doctors.html">
+              <span><i class="fa-solid fa-user-doctor"></i></span>
+              <small>Find Doctors</small>
+            </a>
+            <a class="hs-side-link" href="bed_availability.html">
+              <span><i class="fa-solid fa-bed"></i></span>
+              <small>Bed Availability</small>
+            </a>
+            <a class="hs-side-link" href="appointments.html">
+              <span><i class="fa-solid fa-calendar-check"></i></span>
+              <small>My Appointments</small>
+            </a>
+            <a class="hs-side-link" href="emergency.html">
+              <span><i class="fa-solid fa-truck-medical"></i></span>
+              <small>Emergency</small>
+            </a>
+            <a class="hs-side-link" href="prescriptions.html">
+              <span><i class="fa-solid fa-prescription-bottle-medical"></i></span>
+              <small>Prescriptions</small>
+            </a>
+            <a class="hs-side-link active" href="form.html">
+              <span><i class="fa-solid fa-clipboard-list"></i></span>
+              <small>Form</small>
+            </a>
+            <a class="hs-side-link" href="profile.html">
+              <span><i class="fa-regular fa-user"></i></span>
+              <small>Profile</small>
+            </a>
+          </nav>
+
+          <section class="hs-main">
+            <div class="hs-brand-row">
+              <div class="hs-brand-logo"><i class="fa-solid fa-heart-pulse"></i></div>
+              <div class="hs-brand-name">HealthSphere</div>
+            </div>
+
+            <header class="hs-greet-row">
+              <div>
+                <p class="hs-hello">Form</p>
+                <h2 class="hs-name">Consent Form</h2>
+              </div>
+            </header>
+
+            <section class="hs-location-card">
+              <div class="hs-location-row">
+                <div class="hs-location-icon"><i class="fa-solid fa-file-signature"></i></div>
+                <div>
+                  <h4>Consent Details</h4>
+                  <p>Please review each consent and sign digitally.</p>
+                </div>
+              </div>
+
+              <form id="consentForm" class="hs-form-wrap" novalidate>
+                <div class="hs-form-card">
+                  <div class="hs-consent-list">
+                    <div class="hs-consent-item">
+                      <h4>General Treatment Consent</h4>
+                      <p>I consent to receive general medical evaluation and treatment as deemed necessary by the healthcare team, including routine tests and medications.</p>
+                      <label><input type="radio" name="generalConsent" value="yes" required> I agree</label>
+                    </div>
+                    <div class="hs-consent-item">
+                      <h4>Surgery Consent</h4>
+                      <p>I understand the proposed surgical procedure, its risks, benefits, and alternatives, and authorize the surgical team to proceed.</p>
+                      <label><input type="radio" name="surgeryConsent" value="yes" required> I agree</label>
+                    </div>
+                    <div class="hs-consent-item">
+                      <h4>Anesthesia Consent</h4>
+                      <p>I understand anesthesia options, possible side effects, and agree to the administration of anesthesia as recommended.</p>
+                      <label><input type="radio" name="anesthesiaConsent" value="yes" required> I agree</label>
+                    </div>
+                    <div class="hs-consent-item">
+                      <h4>Blood Transfusion Consent</h4>
+                      <p>I authorize blood transfusion if medically necessary and understand the associated risks and benefits.</p>
+                      <label><input type="radio" name="bloodConsent" value="yes" required> I agree</label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="hs-form-card">
+                  <div class="hs-field" style="margin-top: 12px;">
+                    <label for="signatureCanvas">Digital Sign</label>
+                    <div class="hs-signature-pad">
+                      <canvas id="signatureCanvas" class="hs-signature-canvas" width="900" height="320" aria-label="Signature pad"></canvas>
+                      <div class="hs-signature-actions">
+                        <button id="clearSignature" class="hs-submit hs-secondary" type="button">Clear</button>
+                      </div>
+                      <input id="signatureData" type="hidden" />
+                      <div class="hs-note">Use your mouse or touch to draw your signature.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="hs-actions">
+                  <button class="hs-submit" type="submit">Submit Consent Form</button>
+                  <span class="hs-note">You can edit later if needed.</span>
+                </div>
+              </form>
+            </section>
+          </section>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    (function () {
+      const signatureCanvas = document.getElementById("signatureCanvas");
+      const signatureCtx = signatureCanvas.getContext("2d");
+      signatureCtx.lineWidth = 2;
+      signatureCtx.lineCap = "round";
+      signatureCtx.strokeStyle = "#0b4ea2";
+
+      let isDrawing = false;
+      let hasInk = false;
+
+      function getCanvasPoint(event) {
+        const rect = signatureCanvas.getBoundingClientRect();
+        const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+        const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+        const scaleX = signatureCanvas.width / rect.width;
+        const scaleY = signatureCanvas.height / rect.height;
+        return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY
+        };
+      }
+
+      function startDraw(event) {
+        event.preventDefault();
+        isDrawing = true;
+        const point = getCanvasPoint(event);
+        signatureCtx.beginPath();
+        signatureCtx.moveTo(point.x, point.y);
+      }
+
+      function draw(event) {
+        if (!isDrawing) return;
+        const point = getCanvasPoint(event);
+        signatureCtx.lineTo(point.x, point.y);
+        signatureCtx.stroke();
+        hasInk = true;
+      }
+
+      function endDraw() {
+        if (!isDrawing) return;
+        isDrawing = false;
+        signatureCtx.closePath();
+      }
+
+      function clearSignature() {
+        signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+        hasInk = false;
+      }
+
+      signatureCanvas.addEventListener("mousedown", startDraw);
+      signatureCanvas.addEventListener("mousemove", draw);
+      signatureCanvas.addEventListener("mouseup", endDraw);
+      signatureCanvas.addEventListener("mouseleave", endDraw);
+      signatureCanvas.addEventListener("touchstart", startDraw, { passive: false });
+      signatureCanvas.addEventListener("touchmove", draw, { passive: false });
+      signatureCanvas.addEventListener("touchend", endDraw);
+
+      document.getElementById("clearSignature").addEventListener("click", clearSignature);
+
+      document.getElementById("consentForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+        if (!hasInk) {
+          alert("Please add your digital signature before submitting.");
+          return;
+        }
+        const query = new URLSearchParams(window.location.search);
+        const patientId = query.get("id") || "default";
+        const filledKey = "hs_filled_forms_" + patientId;
+        let filled = [];
+        try {
+          const raw = window.localStorage.getItem(filledKey);
+          filled = raw ? JSON.parse(raw) : [];
+          if (!Array.isArray(filled)) filled = [];
+        } catch (_err) {
+          filled = [];
+        }
+        if (!filled.includes("Consent Form")) {
+          filled.push("Consent Form");
+          window.localStorage.setItem(filledKey, JSON.stringify(filled));
+        }
+        const suffix = patientId ? "?id=" + encodeURIComponent(patientId) : "";
+        window.location.href = "form.html" + suffix;
+      });
+    })();
+  </script>
+</body>
+</html>

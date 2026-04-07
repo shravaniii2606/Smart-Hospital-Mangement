@@ -16,6 +16,14 @@ app.use(express.json({ limit: "1mb" }));
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini";
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
+const SUPABASE_URL =
+  process.env.SUPABASE_URL || "https://nfmzosvedtieicnfbmlh.supabase.co";
+const SUPABASE_ANON_KEY =
+  process.env.SUPABASE_ANON_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
+
+const conversationState = new Map();
+const STATE_TTL_MS = 10 * 60 * 1000;
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -64,6 +72,117 @@ async function extractTextFromPdf(file, maxChars) {
   } catch (_err) {
     return "";
   }
+}
+
+function normalizeText(value) {
+  return String(value || "").toLowerCase().trim();
+}
+
+function getClientKey(req) {
+  const forwarded = req.headers["x-forwarded-for"];
+  if (forwarded) {
+    return String(forwarded).split(",")[0].trim();
+  }
+  return req.ip || "unknown";
+}
+
+function setConversationState(key, nextState) {
+  conversationState.set(key, { ...nextState, updatedAt: Date.now() });
+}
+
+function getConversationState(key) {
+  const entry = conversationState.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.updatedAt > STATE_TTL_MS) {
+    conversationState.delete(key);
+    return null;
+  }
+  return entry;
+}
+
+function isAffirmative(message) {
+  const msg = normalizeText(message);
+  return (
+    msg === "yes" ||
+    msg === "yeah" ||
+    msg === "yep" ||
+    msg === "sure" ||
+    msg.startsWith("yes ") ||
+    msg.startsWith("yeah ") ||
+    msg.startsWith("yep ")
+  );
+}
+
+function detectSpecialty(message) {
+  const msg = normalizeText(message);
+  if (!msg) return null;
+
+  const cardioHints = [
+    "chest pain",
+    "pain in chest",
+    "heart",
+    "cardio",
+    "cardiac",
+    "palpitations"
+  ];
+
+  if (cardioHints.some((hint) => msg.includes(hint))) {
+    return { specialty: "Cardiology", label: "cardiologist" };
+  }
+
+  return null;
+}
+
+function extractExplicitSpecialty(message) {
+  const msg = normalizeText(message);
+  if (msg.includes("cardio") || msg.includes("cardiologist") || msg.includes("cardiology")) {
+    return { specialty: "Cardiology", label: "cardiologist" };
+  }
+  return null;
+}
+
+async function fetchDoctorsBySpecialty(specialty) {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    return [];
+  }
+
+  const query = new URLSearchParams({
+    select: "doc_id,name,specialty,experience,availability,phone,email",
+    specialty: `ilike.*${specialty}*`
+  });
+
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/doctor_profile?${query}`, {
+    headers: {
+      apikey: SUPABASE_ANON_KEY,
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`
+    }
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || "Failed to load doctors.");
+  }
+
+  return (await response.json()) || [];
+}
+
+function formatDoctorList(doctors, label) {
+  if (!doctors || !doctors.length) {
+    return `I couldn't find any ${label}s in our directory yet. You can check the Find Doctors page for the latest updates.`;
+  }
+
+  const topDoctors = doctors.slice(0, 5);
+  const list = topDoctors
+    .map((doctor) => {
+      const name = doctor.name || "Doctor";
+      const specialty = doctor.specialty || label;
+      const availability = doctor.availability ? ` | ${doctor.availability}` : "";
+      const phone = doctor.phone ? ` | ${doctor.phone}` : "";
+      return `${name} (${specialty}${availability}${phone})`;
+    })
+    .join(" · ");
+
+  return `Here are ${label}s available right now: ${list}`;
 }
 
 async function buildMessages(message, files) {
@@ -123,16 +242,55 @@ app.get("/", (_req, res) => {
 
 app.post("/api/chat", upload.array("files", 5), async (req, res) => {
   try {
-    if (!OPENROUTER_API_KEY) {
-      return res.status(500).json({
-        error: "Missing OPENROUTER_API_KEY in environment variables."
-      });
-    }
-
     const message = (req.body && req.body.message) || "";
     const files = req.files || [];
     if (!message && (!files || !files.length)) {
       return res.status(400).json({ error: "Message or files required." });
+    }
+
+    const messageLower = normalizeText(message);
+    const clientKey = getClientKey(req);
+    const previousState = getConversationState(clientKey);
+    const detectedSpecialty = detectSpecialty(message);
+    const explicitSpecialty = extractExplicitSpecialty(message);
+
+    if (detectedSpecialty) {
+      setConversationState(clientKey, {
+        specialty: detectedSpecialty.specialty,
+        label: detectedSpecialty.label
+      });
+      return res.json({
+        reply:
+          "Chest pain can be serious. If it's severe, sudden, or with shortness of breath, please seek emergency care.\n" +
+          `It would be best to visit a ${detectedSpecialty.label}. Would you like me to suggest some ${detectedSpecialty.label}s from our directory?`
+      });
+    }
+
+    if (
+      explicitSpecialty ||
+      (previousState && isAffirmative(messageLower))
+    ) {
+      const chosenSpecialty = explicitSpecialty || previousState;
+      const specialtyLabel = chosenSpecialty.label || "specialist";
+
+      try {
+        const doctors = await fetchDoctorsBySpecialty(chosenSpecialty.specialty);
+        conversationState.delete(clientKey);
+        return res.json({
+          reply: formatDoctorList(doctors, specialtyLabel)
+        });
+      } catch (error) {
+        return res.json({
+          reply:
+            "I had trouble loading doctors from the directory. Please try again or open the Find Doctors page."
+        });
+      }
+    }
+
+    if (!OPENROUTER_API_KEY) {
+      return res.status(500).json({
+        error: "Missing OPENROUTER_API_KEY in environment variables."
+      });
     }
 
     const response = await fetch(OPENROUTER_API_URL, {

@@ -175,14 +175,26 @@
       
       let html = '';
       for (const appt of sortedAppointments) {
+        const statusValue = (appt.status || "pending").toLowerCase();
+        let actionOptions = "";
+        if (statusValue === "approved") {
+          actionOptions = `<label><input type="radio" name="status-${appt.id}" value="cancelled"> Cancel</label>`;
+        } else if (statusValue === "cancelled") {
+          actionOptions = `<label><input type="radio" name="status-${appt.id}" value="approved"> Approve</label>`;
+        } else {
+          actionOptions = `
+              <label><input type="radio" name="status-${appt.id}" value="approved"> Approve</label>
+              <label><input type="radio" name="status-${appt.id}" value="cancelled"> Cancel</label>
+          `;
+        }
+
         html += `
         <div class="appointment-card">
           <div class="appointment-header">
             <h3>${appt.patient_name || "Patient"} → ${appt.doctor_name || "Doctor"}</h3>
             <span class="status-badge ${appt.status || 'pending'}">${appt.status || 'pending'}</span>
             <div class="appointment-actions">
-              <label><input type="radio" name="status-${appt.id}" value="approved"> Approve</label>
-              <label><input type="radio" name="status-${appt.id}" value="cancelled"> Cancel</label>
+              ${actionOptions}
               <button class="button button-primary" data-update-id="${appt.id}">Update</button>
             </div>
           </div>
@@ -287,4 +299,6 @@
   </script>
 </body>
 </html>
+
+
 
