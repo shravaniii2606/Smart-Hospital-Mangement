@@ -753,7 +753,19 @@ a {
   color: #1f8f4e;
 }
 
+.hs-status.accepted,
+.hs-status.approved {
+  background: #e6f4ea;
+  color: #1f8f4e;
+}
+
 .hs-status.cancelled {
+  background: #fdecea;
+  color: #c22525;
+}
+
+.hs-status.rejected,
+.hs-status.declined {
   background: #fdecea;
   color: #c22525;
 }
@@ -761,6 +773,40 @@ a {
 .hs-status.pending {
   background: #eef1f7;
   color: #5d6a86;
+}
+
+.hs-notice-card {
+  border-radius: 16px;
+  padding: 14px;
+  border: 1px solid #d8e2f4;
+  background: linear-gradient(180deg, #ffffff, #f7faff);
+  display: grid;
+  gap: 8px;
+}
+
+.hs-notice-card strong {
+  color: #1f2433;
+}
+
+.hs-notice-card p {
+  margin: 0;
+  color: #54627f;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.hs-notice-card.is-pending {
+  border-color: #d8e2f4;
+}
+
+.hs-notice-card.is-accepted {
+  border-color: #ccebd8;
+  background: linear-gradient(180deg, #ffffff, #f2fbf5);
+}
+
+.hs-notice-card.is-rejected {
+  border-color: #f0cccc;
+  background: linear-gradient(180deg, #ffffff, #fff5f5);
 }
 
 .hs-hospital-grid {
@@ -829,6 +875,61 @@ a {
   font-size: 12px;
   color: #2f73db;
   font-weight: 700;
+}
+
+.hs-inline-note {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #70809f;
+}
+
+.hs-detail-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.hs-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.hs-mini-card {
+  border: 1px solid #e1e7f3;
+  border-radius: 14px;
+  background: #f9fbff;
+  padding: 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.hs-mini-card small {
+  color: #6b7692;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hs-mini-card strong {
+  color: #1f2433;
+  font-size: 14px;
+}
+
+.hs-form-note {
+  margin: -2px 0 4px;
+  font-size: 12px;
+  color: #66748f;
+}
+
+.hs-request-meta {
+  margin-top: 4px;
+  display: grid;
+  gap: 4px;
+}
+
+.hs-request-meta span {
+  font-size: 12px;
+  color: #6a748f;
 }
 
 .doc-location-bar {

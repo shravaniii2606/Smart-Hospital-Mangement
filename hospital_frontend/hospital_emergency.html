@@ -114,7 +114,47 @@
       line-height:1.05;
       margin-bottom:10px;
     }
-    .page-card p, .request-card p, .meta-value { color:var(--muted); line-height:1.6; }
+    .page-card p, .request-card p, .meta-value, .field-help, .decision-copy p {
+      color:var(--muted);
+      line-height:1.6;
+    }
+    .page-top {
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+    .page-chip {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      background:#eef8ff;
+      color:var(--blue);
+      font-weight:700;
+      font-size:14px;
+    }
+    .debug-card {
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:16px 18px;
+      box-shadow:0 10px 24px rgba(23,35,61,.05);
+      display:grid;
+      gap:8px;
+    }
+    .debug-card strong {
+      color:#223152;
+      font-size:15px;
+    }
+    .debug-card p {
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.5;
+    }
     .status-banner {
       border-radius:18px;
       padding:14px 16px;
@@ -126,6 +166,7 @@
     }
     .status-banner.success { background:#effaf3; border-color:#ccebd8; color:#1d6f3d; }
     .status-banner.error { background:#fff2f2; border-color:#f0cccc; color:#a53c3c; }
+    .status-banner.info { background:#eef7ff; border-color:#d3e7fb; color:#1d4f83; }
     .request-grid { display:grid; gap:18px; }
     .request-head {
       display:flex;
@@ -146,6 +187,9 @@
       font-weight:700;
       font-size:14px;
     }
+    .request-badge.accepted { background:#effaf3; color:#1d6f3d; }
+    .request-badge.rejected { background:#fff2f2; color:#a53c3c; }
+    .request-badge.pending { background:#fff9ea; color:#9a6a00; }
     .request-card h2 { font-size:24px; margin-bottom:4px; }
     .meta-grid {
       display:grid;
@@ -174,17 +218,51 @@
       font-weight:700;
       color:var(--text);
       line-height:1.4;
+      word-break:break-word;
     }
-    .decision-row {
+    .verify-row {
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:16px;
+      gap:12px;
+      margin-bottom:18px;
       flex-wrap:wrap;
+    }
+    .verify-pill {
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:800;
+      letter-spacing:.03em;
+    }
+    .verify-pill.verified {
+      background:#eaf7ee;
+      color:#1d6f3d;
+    }
+    .verify-pill.unverified {
+      background:#fff4e8;
+      color:#9a5a00;
+    }
+    .decision-row {
+      display:grid;
+      gap:16px;
       border-top:1px solid var(--line);
       padding-top:18px;
     }
-    .decision-options { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .decision-copy strong {
+      display:block;
+      margin-bottom:4px;
+      font-size:16px;
+    }
+    .decision-options {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
     .decision-option {
       display:inline-flex;
       align-items:center;
@@ -199,6 +277,85 @@
     .decision-option.accept { color:var(--success); }
     .decision-option.decline { color:var(--danger); }
     .decision-option input { accent-color:currentColor; }
+    .decision-form {
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:14px;
+      align-items:start;
+    }
+    .decision-field {
+      display:grid;
+      gap:8px;
+    }
+    .decision-field.full {
+      grid-column:1 / -1;
+    }
+    .decision-field label {
+      font-size:13px;
+      font-weight:800;
+      color:#223152;
+    }
+    .decision-input,
+    .decision-textarea {
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      font-size:14px;
+      outline:none;
+      background:#fff;
+    }
+    .decision-textarea {
+      resize:vertical;
+      min-height:96px;
+    }
+    .decision-input:focus,
+    .decision-textarea:focus {
+      border-color:var(--blue);
+      box-shadow:0 0 0 4px rgba(11,78,162,.12);
+    }
+    .request-actions {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .action-btn {
+      border:0;
+      border-radius:14px;
+      padding:12px 16px;
+      font-size:14px;
+      font-weight:800;
+      cursor:pointer;
+      color:#fff;
+      background:linear-gradient(135deg, var(--blue), var(--sky));
+      box-shadow:0 12px 20px rgba(11,78,162,.18);
+    }
+    .action-btn.secondary {
+      background:#fff;
+      color:#32456b;
+      border:1px solid var(--line);
+      box-shadow:none;
+    }
+    .action-btn:disabled {
+      opacity:.6;
+      cursor:not-allowed;
+      box-shadow:none;
+    }
+    .decision-summary {
+      border-top:1px solid var(--line);
+      padding-top:18px;
+      display:grid;
+      gap:8px;
+    }
+    .decision-summary strong {
+      font-size:15px;
+      color:#223152;
+    }
+    .decision-summary p {
+      margin:0;
+      font-size:14px;
+    }
     .empty-note {
       border:1px dashed #c8d8eb;
       border-radius:18px;
@@ -212,6 +369,7 @@
       .sidebar-shell { width:100%; }
       .sidebar { grid-template-columns:repeat(3, minmax(0, 1fr)); }
       .meta-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+      .decision-form { grid-template-columns:1fr; }
     }
     @media (max-width:640px) {
       body { padding:12px; }
@@ -230,7 +388,6 @@
         <a class="side-link" href="hospital_bed_availability.html"><span><i class="fa-solid fa-bed"></i></span><small>Bed Availability</small></a>
         <a class="side-link" href="hospital_appointments.html"><span><i class="fa-solid fa-calendar-check"></i></span><small>Appointments</small></a>
         <a class="side-link" href="hospital_patients.html"><span><i class="fa-solid fa-hospital-user"></i></span><small>Patient</small></a>
-        <a class="side-link" href="hospital_patients.html"><span><i class="fa-solid fa-notes-medical"></i></span><small>Patient</small></a>
         <a class="side-link active" href="hospital_emergency.html"><span><i class="fa-solid fa-truck-medical"></i></span><small>Emergency</small></a>
       </nav>
     </aside>
@@ -244,84 +401,406 @@
       </div>
 
       <section class="page-card">
-        <h1>Emergency Ambulance Requests</h1>
-        <p>Review urgent ambulance requests from patients and record whether the hospital accepts or declines each request.</p>
+        <div class="page-top">
+          <div>
+            <h1>Emergency Ambulance Requests</h1>
+            <p>Review ambulance requests from real patient accounts, then accept them with an estimated arrival time or reject them with a response note.</p>
+          </div>
+          <div class="page-chip"><i class="fa-solid fa-hospital"></i><span id="hospitalScopeLabel">City Hospital</span></div>
+        </div>
       </section>
 
-      <div id="statusBanner" class="status-banner">Emergency ambulance requests are ready for review.</div>
-
-      <section class="request-grid" id="emergencyRequestList">
-        <article class="request-card">
-          <div class="request-head">
-            <div>
-              <h2>Ambulance Request</h2>
-              <p>Patient requested emergency ambulance support.</p>
-            </div>
-            <div class="request-badge"><i class="fa-solid fa-siren-on"></i><span>Priority Emergency</span></div>
-          </div>
-          <div class="meta-grid">
-            <div class="meta-item">
-              <span class="meta-label">Patient Name</span>
-              <span class="meta-value">Ananya Sharma</span>
-            </div>
-            <div class="meta-item">
-              <span class="meta-label">Phone Number</span>
-              <span class="meta-value">+91 98765 43210</span>
-            </div>
-            <div class="meta-item">
-              <span class="meta-label">Location</span>
-              <span class="meta-value">MG Road, Bengaluru</span>
-            </div>
-            <div class="meta-item">
-              <span class="meta-label">Date</span>
-              <span class="meta-value">06 April 2026</span>
-            </div>
-            <div class="meta-item">
-              <span class="meta-label">Time</span>
-              <span class="meta-value">10:15 PM</span>
-            </div>
-            <div class="meta-item">
-              <span class="meta-label">Driver Number</span>
-              <span class="meta-value">+91 99887 77665</span>
-            </div>
-            <div class="meta-item">
-              <span class="meta-label">Vehicle Number</span>
-              <span class="meta-value">KA-01-AB-4582</span>
-            </div>
-          </div>
-          <div class="decision-row">
-            <div>
-              <strong>Request Decision</strong>
-              <p>Select one option for this ambulance request.</p>
-            </div>
-            <div class="decision-options">
-              <label class="decision-option accept"><input type="radio" name="ambulance-request-1" value="accept" /><span>Accept</span></label>
-              <label class="decision-option decline"><input type="radio" name="ambulance-request-1" value="decline" /><span>Decline</span></label>
-            </div>
-          </div>
-        </article>
+      <div id="statusBanner" class="status-banner info">Loading emergency ambulance requests.</div>
+      <section id="debugCard" class="debug-card">
+        <strong>Connection check</strong>
+        <p id="debugSummary">Waiting for hospital-side request check.</p>
       </section>
+
+      <section class="request-grid" id="emergencyRequestList"></section>
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const statusBanner = document.getElementById("statusBanner");
-    const requestList = document.getElementById("emergencyRequestList");
+    (function () {
+      var SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
+      var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
+      var AMBULANCE_TABLE = "city_hospital_ambulance_requests";
+      var HOSPITAL_NAME = getHospitalScope();
+      var statusBanner = document.getElementById("statusBanner");
+      var requestList = document.getElementById("emergencyRequestList");
+      var debugSummary = document.getElementById("debugSummary");
+      var activeRequests = [];
 
-    requestList.addEventListener("change", (event) => {
-      const selectedOption = event.target.closest('input[type="radio"]');
-      if (!selectedOption) {
-        return;
+      function getHospitalScope() {
+        try {
+          var params = new URLSearchParams(window.location.search);
+          var fromQuery = params.get("hospital");
+          if (fromQuery && fromQuery.trim()) {
+            return fromQuery.trim();
+          }
+          var stored = localStorage.getItem("hsHospitalEmergencyScope");
+          if (stored && stored.trim()) {
+            return stored.trim();
+          }
+        } catch (error) {
+          console.warn("Unable to read hospital scope", error);
+        }
+        return "City Hospital";
       }
-      const isAccepted = selectedOption.value === "accept";
-      statusBanner.textContent = isAccepted
-        ? "Ambulance request marked as accepted."
-        : "Ambulance request marked as declined.";
-      statusBanner.className = "status-banner " + (isAccepted ? "success" : "error");
-    });
+
+      function getSupabaseClient() {
+        if (typeof supabase === "undefined" || !supabase.createClient) {
+          throw new Error("Supabase library not loaded. Check the script tag.");
+        }
+        return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+
+      function setBanner(message, tone) {
+        if (!statusBanner) return;
+        statusBanner.textContent = message;
+        statusBanner.className = "status-banner" + (tone ? " " + tone : "");
+      }
+
+      function setDebug(message) {
+        if (!debugSummary) return;
+        debugSummary.textContent = message;
+      }
+
+      function escapeHtml(value) {
+        return String(value || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function normalizeHospitalName(value) {
+        return String(value || "")
+          .trim()
+          .replace(/\s+/g, " ")
+          .toLowerCase();
+      }
+
+      function normalizeStatus(value) {
+        var status = String(value || "pending").toLowerCase();
+        if (status === "approved" || status === "confirmed") return "accepted";
+        if (status === "cancelled" || status === "declined") return "rejected";
+        return status;
+      }
+
+      function formatDateTime(value) {
+        if (!value) return "-";
+        var date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return new Intl.DateTimeFormat("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        }).format(date);
+      }
+
+      function badgeClass(status) {
+        var normalized = normalizeStatus(status);
+        if (normalized === "accepted") return "accepted";
+        if (normalized === "rejected") return "rejected";
+        return "pending";
+      }
+
+      function isVerified(profile) {
+        return !!(profile && (profile.name || profile.email || profile.phone));
+      }
+
+      function getLocationLabel(request) {
+        if (request.pickup_location) return request.pickup_location;
+        if (request.latitude && request.longitude) {
+          return "Lat " + request.latitude + ", Lng " + request.longitude;
+        }
+        return "Location not shared";
+      }
+
+      function getEtaLabel(request) {
+        return request.estimated_time || request.eta || "-";
+      }
+
+      async function loadRequests() {
+        var client = getSupabaseClient();
+        var result = await client
+          .from(AMBULANCE_TABLE)
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (result.error) {
+          throw result.error;
+        }
+
+        var requests = result.data || [];
+        var normalizedScope = normalizeHospitalName(HOSPITAL_NAME);
+        var matchingRequests = requests.filter(function (request) {
+          return normalizeHospitalName(request.hospital_name) === normalizedScope;
+        });
+        var scopedRequests = matchingRequests.length > 0 || requests.length === 0
+          ? matchingRequests
+          : requests;
+        var uniqueHospitals = Array.from(new Set(requests.map(function (request) {
+          return request.hospital_name || "Unknown hospital";
+        })));
+        var userIds = Array.from(new Set(requests.map(function (item) {
+          return item.user_id;
+        }).filter(Boolean)));
+        var patientMap = {};
+
+        if (userIds.length > 0) {
+          var patientResult = await client
+            .from("patient_profile")
+            .select("user_id,name,email,phone,age,gender,blood_group")
+            .in("user_id", userIds);
+
+          if (!patientResult.error && patientResult.data) {
+            patientMap = patientResult.data.reduce(function (map, patient) {
+              map[patient.user_id] = patient;
+              return map;
+            }, {});
+          }
+        }
+
+        var rows = scopedRequests.map(function (request) {
+          var profile = patientMap[request.user_id] || null;
+          return {
+            request: request,
+            profile: profile,
+            verified: isVerified(profile),
+            scopeMismatch: matchingRequests.length === 0 && requests.length > 0
+          };
+        });
+
+        setDebug(
+          "Supabase returned " + requests.length +
+          " request(s). Current hospital scope: " + HOSPITAL_NAME +
+          ". Matching scope rows: " + matchingRequests.length +
+          ". Hospitals found: " + (uniqueHospitals.length ? uniqueHospitals.join(", ") : "none") + "."
+        );
+
+        return rows;
+      }
+
+      function renderRequests(rows) {
+        if (!requestList) return;
+
+        if (!rows || rows.length === 0) {
+          requestList.innerHTML = "<div class=\"empty-note\">No ambulance requests for " + escapeHtml(HOSPITAL_NAME) + " right now.</div>";
+          setBanner("No emergency ambulance requests are waiting for review.", "info");
+          return;
+        }
+
+        var pendingCount = rows.filter(function (item) {
+          return normalizeStatus(item.request.status) === "pending";
+        }).length;
+
+        if (rows[0] && rows[0].scopeMismatch) {
+          setBanner(
+            "Requests were found, but none matched the current hospital scope exactly. Showing all ambulance requests so you can verify the saved hospital name.",
+            "error"
+          );
+        } else {
+          setBanner(
+            pendingCount > 0
+              ? pendingCount + " emergency request" + (pendingCount === 1 ? " is" : "s are") + " waiting for a decision."
+              : "All emergency requests have already been reviewed.",
+            pendingCount > 0 ? "info" : "success"
+          );
+        }
+
+        requestList.innerHTML = rows.map(function (item) {
+          var request = item.request;
+          var profile = item.profile || {};
+          var normalizedStatus = normalizeStatus(request.status);
+          var patientName = request.patient_name || profile.name || "Patient";
+          var phone = request.phone || profile.phone || "-";
+          var verifiedPill = item.verified
+            ? "<div class=\"verify-pill verified\"><i class=\"fa-solid fa-circle-check\"></i><span>Verified patient profile</span></div>"
+            : "<div class=\"verify-pill unverified\"><i class=\"fa-solid fa-triangle-exclamation\"></i><span>Needs patient verification</span></div>";
+          var decisionSummary = normalizedStatus === "pending"
+            ? ""
+            : "<div class=\"decision-summary\">" +
+                "<strong>Current decision</strong>" +
+                "<p>Status: " + escapeHtml(normalizedStatus.charAt(0).toUpperCase() + normalizedStatus.slice(1)) + "</p>" +
+                "<p>Estimated arrival: " + escapeHtml(getEtaLabel(request)) + "</p>" +
+                (request.response_note || request.note ? "<p>Response note: " + escapeHtml(request.response_note || request.note) + "</p>" : "") +
+                "<p>Reviewed: " + escapeHtml(formatDateTime(request.reviewed_at || request.updated_at)) + "</p>" +
+              "</div>";
+          var disabledAttr = item.verified ? "" : "disabled";
+          var helperText = item.verified
+            ? "Accept with ETA or reject with a note. The patient will see this update on the emergency page."
+            : "Only verified patients should be accepted. This account has no matching patient profile yet.";
+
+          return (
+            "<article class=\"request-card\" data-request-id=\"" + escapeHtml(request.id) + "\">" +
+              "<div class=\"request-head\">" +
+                "<div>" +
+                  "<h2>Ambulance Request</h2>" +
+                  "<p>Patient requested emergency ambulance support for " + escapeHtml(request.hospital_name || HOSPITAL_NAME) + ".</p>" +
+                "</div>" +
+                "<div class=\"request-badge " + badgeClass(normalizedStatus) + "\"><i class=\"fa-solid fa-siren-on\"></i><span>" + escapeHtml(normalizedStatus.charAt(0).toUpperCase() + normalizedStatus.slice(1)) + "</span></div>" +
+              "</div>" +
+              "<div class=\"verify-row\">" +
+                verifiedPill +
+                "<p>Requested: " + escapeHtml(formatDateTime(request.created_at)) + "</p>" +
+              "</div>" +
+              "<div class=\"meta-grid\">" +
+                "<div class=\"meta-item\"><span class=\"meta-label\">Hospital</span><span class=\"meta-value\">" + escapeHtml(request.hospital_name || "-") + "</span></div>" +
+                "<div class=\"meta-item\"><span class=\"meta-label\">Patient Name</span><span class=\"meta-value\">" + escapeHtml(patientName) + "</span></div>" +
+                "<div class=\"meta-item\"><span class=\"meta-label\">Phone Number</span><span class=\"meta-value\">" + escapeHtml(phone) + "</span></div>" +
+                "<div class=\"meta-item\"><span class=\"meta-label\">Location</span><span class=\"meta-value\">" + escapeHtml(getLocationLabel(request)) + "</span></div>" +
+                "<div class=\"meta-item\"><span class=\"meta-label\">Emergency Note</span><span class=\"meta-value\">" + escapeHtml(request.emergency_note || "No note shared") + "</span></div>" +
+                "<div class=\"meta-item\"><span class=\"meta-label\">Blood Group</span><span class=\"meta-value\">" + escapeHtml(profile.blood_group || "-") + "</span></div>" +
+                "<div class=\"meta-item\"><span class=\"meta-label\">Age / Gender</span><span class=\"meta-value\">" + escapeHtml((profile.age || "-") + " / " + (profile.gender || "-")) + "</span></div>" +
+              "</div>" +
+              "<div class=\"decision-row\">" +
+                "<div class=\"decision-copy\">" +
+                  "<strong>Request Decision</strong>" +
+                  "<p>" + escapeHtml(helperText) + "</p>" +
+                "</div>" +
+                "<div class=\"decision-options\">" +
+                  "<label class=\"decision-option accept\"><input type=\"radio\" name=\"ambulance-status-" + escapeHtml(request.id) + "\" value=\"accepted\" " + (normalizedStatus === "accepted" ? "checked" : "") + " " + disabledAttr + " /><span>Accept</span></label>" +
+                  "<label class=\"decision-option decline\"><input type=\"radio\" name=\"ambulance-status-" + escapeHtml(request.id) + "\" value=\"rejected\" " + (normalizedStatus === "rejected" ? "checked" : "") + " " + disabledAttr + " /><span>Reject</span></label>" +
+                "</div>" +
+                "<div class=\"decision-form\">" +
+                  "<div class=\"decision-field\">" +
+                    "<label for=\"eta-" + escapeHtml(request.id) + "\">Estimated arrival time</label>" +
+                    "<input id=\"eta-" + escapeHtml(request.id) + "\" class=\"decision-input\" type=\"text\" placeholder=\"e.g. 12 minutes\" value=\"" + escapeHtml(request.estimated_time || request.eta || "") + "\" " + disabledAttr + " />" +
+                    "<span class=\"field-help\">Required when accepting the request.</span>" +
+                  "</div>" +
+                  "<div class=\"decision-field full\">" +
+                    "<label for=\"note-" + escapeHtml(request.id) + "\">Response note</label>" +
+                    "<textarea id=\"note-" + escapeHtml(request.id) + "\" class=\"decision-textarea\" placeholder=\"Share dispatch details or rejection reason\" " + disabledAttr + ">" + escapeHtml(request.response_note || request.note || "") + "</textarea>" +
+                  "</div>" +
+                "</div>" +
+                "<div class=\"request-actions\">" +
+                  "<button class=\"action-btn\" type=\"button\" data-save-id=\"" + escapeHtml(request.id) + "\" " + disabledAttr + ">Save decision</button>" +
+                  "<button class=\"action-btn secondary\" type=\"button\" data-refresh-id=\"" + escapeHtml(request.id) + "\">Refresh</button>" +
+                "</div>" +
+                decisionSummary +
+              "</div>" +
+            "</article>"
+          );
+        }).join("");
+      }
+
+      async function saveDecision(requestId) {
+        var requestIdText = String(requestId);
+        var selected = document.querySelector("input[name=\"ambulance-status-" + requestIdText + "\"]:checked");
+        if (!selected) {
+          setBanner("Choose Accept or Reject before saving the decision.", "error");
+          return;
+        }
+
+        var row = activeRequests.find(function (item) {
+          return String(item.request.id) === requestIdText;
+        });
+        if (!row) {
+          setBanner("Unable to find that ambulance request. Please refresh the list.", "error");
+          return;
+        }
+
+        if (!row.verified) {
+          setBanner("Only verified patient profiles can be accepted from this screen.", "error");
+          return;
+        }
+
+        var nextStatus = selected.value;
+        var etaInput = document.getElementById("eta-" + requestIdText);
+        var noteInput = document.getElementById("note-" + requestIdText);
+        var etaValue = etaInput ? etaInput.value.trim() : "";
+        var noteValue = noteInput ? noteInput.value.trim() : "";
+
+        if (nextStatus === "accepted" && !etaValue) {
+          setBanner("Enter the estimated arrival time before accepting the request.", "error");
+          return;
+        }
+
+        var client = getSupabaseClient();
+        var payload = {
+          status: nextStatus,
+          reviewed_at: new Date().toISOString(),
+          verified_patient: true,
+          response_note: noteValue || null
+        };
+
+        if (nextStatus === "accepted") {
+          payload.estimated_time = etaValue;
+        } else {
+          payload.estimated_time = null;
+        }
+
+        var result = await client
+          .from(AMBULANCE_TABLE)
+          .update(payload)
+          .eq("id", requestId);
+
+        if (result.error) {
+          var fallbackPayload = { status: nextStatus };
+          var fallback = await client
+            .from(AMBULANCE_TABLE)
+            .update(fallbackPayload)
+            .eq("id", requestId);
+
+          if (fallback.error) {
+            throw fallback.error;
+          }
+        }
+
+        setBanner(
+          nextStatus === "accepted"
+            ? "Ambulance request accepted and patient notification updated."
+            : "Ambulance request rejected and patient notification updated.",
+          nextStatus === "accepted" ? "success" : "error"
+        );
+      }
+
+      async function refreshRequests() {
+        try {
+          activeRequests = await loadRequests();
+          renderRequests(activeRequests);
+        } catch (error) {
+          console.error("Error loading emergency requests:", error);
+          requestList.innerHTML = "<div class=\"empty-note\">Unable to load ambulance requests right now.</div>";
+          setBanner((error && error.message) || "Unable to load emergency ambulance requests.", "error");
+          setDebug("Supabase read failed: " + ((error && error.message) || "Unknown error") + ".");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("hospitalScopeLabel").textContent = HOSPITAL_NAME;
+        refreshRequests();
+        window.setInterval(refreshRequests, 15000);
+
+        requestList.addEventListener("click", async function (event) {
+          var saveBtn = event.target.closest("[data-save-id]");
+          if (saveBtn) {
+            saveBtn.disabled = true;
+            try {
+              await saveDecision(saveBtn.getAttribute("data-save-id"));
+              await refreshRequests();
+            } catch (error) {
+              console.error("Error saving emergency decision:", error);
+              setBanner((error && error.message) || "Unable to save the ambulance decision.", "error");
+            } finally {
+              saveBtn.disabled = false;
+            }
+            return;
+          }
+
+          var refreshBtn = event.target.closest("[data-refresh-id]");
+          if (refreshBtn) {
+            refreshRequests();
+          }
+        });
+      });
+    })();
   </script>
 </body>
 </html>
-
-
-

@@ -82,8 +82,12 @@
                   <p>Please confirm your contact and pickup info.</p>
                 </div>
               </div>
+              <p id="ambulanceError" class="auth-error" hidden></p>
               <input id="ambulanceName" class="input" type="text" placeholder="Full name" />
               <input id="ambulancePhone" class="input" type="tel" placeholder="Phone number" />
+              <textarea id="ambulancePickup" class="hs-ai-text" rows="3" placeholder="Pickup location or landmark"></textarea>
+              <textarea id="ambulanceReason" class="hs-ai-text" rows="3" placeholder="Emergency details for the ambulance team"></textarea>
+              <p class="hs-form-note">Only verified patient accounts with a saved patient profile can send an ambulance request.</p>
               <button id="confirmAmbulanceBtn" class="btn danger" type="button">Confirm Ambulance Booking</button>
             </section>
 
@@ -110,6 +114,7 @@
     (function () {
       var SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
       var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
+      var AMBULANCE_TABLE = "city_hospital_ambulance_requests";
 
       function getSupabaseClient() {
         if (typeof supabase === "undefined" || !supabase.createClient) {
@@ -123,6 +128,23 @@
         if (!el) return;
         if (value) {
           el.value = value;
+        }
+      }
+
+      function showError(message) {
+        var errorEl = document.getElementById("ambulanceError");
+        if (!errorEl) return;
+        errorEl.textContent = message || "";
+        errorEl.hidden = !message;
+      }
+
+      function getStoredEmergencyLocation() {
+        try {
+          var raw = localStorage.getItem("hsEmergencyLocation");
+          return raw ? JSON.parse(raw) : null;
+        } catch (error) {
+          console.warn("Unable to read emergency location", error);
+          return null;
         }
       }
 
@@ -149,6 +171,11 @@
         var profile = profileResult.data || {};
         setValue("ambulanceName", profile.name || profile.email || "");
         setValue("ambulancePhone", profile.phone || "");
+
+        var location = getStoredEmergencyLocation();
+        if (location && location.label) {
+          setValue("ambulancePickup", location.label);
+        }
       }
 
       var confirmBtn = document.getElementById("confirmAmbulanceBtn");
@@ -158,38 +185,130 @@
 
       async function saveAmbulanceRequest() {
         var client = getSupabaseClient();
-        if (!client) return { ok: false };
+        if (!client) return { ok: false, message: "Supabase is not available right now." };
 
         var userResult = await client.auth.getUser();
         if (userResult.error || !userResult.data || !userResult.data.user) {
-          return { ok: false };
+          return { ok: false, message: "Please log in as a patient before sending a request." };
         }
 
+        var user = userResult.data.user;
+        var nameInput = document.getElementById("ambulanceName");
         var phoneInput = document.getElementById("ambulancePhone");
+        var pickupInput = document.getElementById("ambulancePickup");
+        var reasonInput = document.getElementById("ambulanceReason");
+        var nameValue = nameInput ? nameInput.value.trim() : "";
         var phoneValue = phoneInput ? phoneInput.value.trim() : "";
+        var pickupValue = pickupInput ? pickupInput.value.trim() : "";
+        var reasonValue = reasonInput ? reasonInput.value.trim() : "";
+
+        if (!nameValue || !phoneValue || !pickupValue || !reasonValue) {
+          return { ok: false, message: "Please complete your name, phone, pickup location, and emergency details." };
+        }
+
+        var profileResult = await client
+          .from("patient_profile")
+          .select("user_id,name,phone,email")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (profileResult.error) {
+          return { ok: false, message: profileResult.error.message || "Unable to verify patient profile." };
+        }
+
+        if (!profileResult.data) {
+          return { ok: false, message: "Only registered patients can request an ambulance. Please complete patient signup first." };
+        }
+
+        var pendingResult = await client
+          .from(AMBULANCE_TABLE)
+          .select("id,status")
+          .eq("user_id", user.id)
+          .eq("hospital_name", hospitalName)
+          .eq("status", "pending")
+          .limit(1);
+
+        if (!pendingResult.error && pendingResult.data && pendingResult.data.length > 0) {
+          return { ok: false, message: "You already have a pending ambulance request with this hospital." };
+        }
+
+        var storedLocation = getStoredEmergencyLocation();
+        var insertPayload = {
+          user_id: user.id,
+          hospital_name: hospitalName,
+          phone: phoneValue || null,
+          status: "pending",
+          patient_name: nameValue,
+          pickup_location: pickupValue,
+          emergency_note: reasonValue,
+          verified_patient: true
+        };
+
+        if (storedLocation && typeof storedLocation.latitude === "number") {
+          insertPayload.latitude = storedLocation.latitude;
+        }
+
+        if (storedLocation && typeof storedLocation.longitude === "number") {
+          insertPayload.longitude = storedLocation.longitude;
+        }
 
         var insertResult = await client
-          .from("ambulance_requests")
-          .insert({
-            user_id: userResult.data.user.id,
-            hospital_name: hospitalName,
-            phone: phoneValue || null,
-            status: "pending"
-          });
+          .from(AMBULANCE_TABLE)
+          .insert(insertPayload)
+          .select("id,hospital_name,status,created_at")
+          .single();
 
         if (insertResult.error) {
-          return { ok: false };
+          var fallbackResult = await client
+            .from(AMBULANCE_TABLE)
+            .insert({
+              user_id: user.id,
+              hospital_name: hospitalName,
+              phone: phoneValue || null,
+              status: "pending"
+            })
+            .select("id,hospital_name,status,created_at")
+            .single();
+
+          if (fallbackResult.error) {
+            return { ok: false, message: fallbackResult.error.message || "Unable to send ambulance request." };
+          }
+
+          if (!fallbackResult.data || !fallbackResult.data.id) {
+            return { ok: false, message: "Supabase did not confirm that the ambulance request was saved." };
+          }
+
+          return {
+            ok: true,
+            requestId: fallbackResult.data.id
+          };
         }
-        return { ok: true };
+
+        if (!insertResult.data || !insertResult.data.id) {
+          return { ok: false, message: "Supabase did not confirm that the ambulance request was saved." };
+        }
+
+        return {
+          ok: true,
+          requestId: insertResult.data.id
+        };
       }
 
       if (confirmBtn && modal) {
         confirmBtn.addEventListener("click", async function () {
+          showError("");
           confirmBtn.disabled = true;
-          await saveAmbulanceRequest();
+          var result = await saveAmbulanceRequest();
+          confirmBtn.disabled = false;
+
+          if (!result.ok) {
+            showError(result.message || "Unable to send ambulance request.");
+            return;
+          }
+
+          console.log("Ambulance request saved", result.requestId || "unknown");
           modal.classList.add("show");
           modal.setAttribute("aria-hidden", "false");
-          confirmBtn.disabled = false;
         });
       }
 
