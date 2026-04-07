@@ -105,11 +105,6 @@
           <div class="bed-list" data-bed-list="normal"></div>
         </article>
       </section>
-      <section class="requests-card">
-        <h2>Pending Booking Requests</h2>
-        <p>Patients can request an available bed. Approval here is what turns that bed into a booked bed.</p>
-        <div id="requestList" class="request-list"></div>
-      </section>
     </section>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -117,9 +112,7 @@
   <script>
     const statusBanner = document.getElementById("statusBanner");
     const statusFilter = document.getElementById("statusFilter");
-    const requestList = document.getElementById("requestList");
     let allBeds = [];
-    let pendingRequests = [];
 
     function setStatus(message, tone) {
       statusBanner.textContent = message;
@@ -218,22 +211,7 @@
       renderBeds(groupBedsByWard(getFilteredBeds()));
     }
 
-    function renderPendingRequests() {
-      if (!pendingRequests.length) {
-        requestList.innerHTML = '<div class="empty-list">No pending bed booking requests right now.</div>';
-        return;
-      }
-      requestList.innerHTML = pendingRequests.map((request) => `
-        <div class="request-row">
-          <div class="request-meta">
-            <strong>${request.patientName || "Patient"} requested Room ${request.roomNumber} - Bed ${request.bedNumber}</strong>
-            <small>${request.ward.toUpperCase()} ward</small>
-            <small>${request.patientEmail || "No email available"}</small>
-          </div>
-          <button class="approve-request-btn" type="button" data-approve-request-id="${request.id}">Approve</button>
-        </div>
-      `).join("");
-    }
+   
 
     document.querySelectorAll("[data-bed-list]").forEach((bedList) => {
       bedList.addEventListener("click", async (event) => {
@@ -261,27 +239,6 @@
       });
     });
 
-    requestList.addEventListener("click", async (event) => {
-      const approveButton = event.target.closest("[data-approve-request-id]");
-      if (!approveButton) {
-        return;
-      }
-      const requestId = approveButton.getAttribute("data-approve-request-id");
-      approveButton.disabled = true;
-      try {
-        const approvedRequest = await approveBedBookingRequest(requestId);
-        allBeds = await loadHospitalBeds();
-        pendingRequests = await loadBedBookingRequests("pending");
-        refreshVisibleBeds();
-        renderPendingRequests();
-        setStatus("Approved booking for " + (approvedRequest.patientName || "Patient") + " in " + approvedRequest.ward.toUpperCase() + " room " + approvedRequest.roomNumber + " bed " + approvedRequest.bedNumber + ".", "success");
-      } catch (error) {
-        console.error("Error approving bed request:", error);
-        approveButton.disabled = false;
-        setStatus(error.message || "Unable to approve bed request.", "error");
-      }
-    });
-
     statusFilter.addEventListener("change", () => {
       refreshVisibleBeds();
       setStatus(statusFilter.value === "all" ? "Showing all beds." : "Showing only " + statusFilter.value + " beds.", "success");
@@ -290,9 +247,7 @@
     async function initBeds() {
       try {
         allBeds = await loadHospitalBeds();
-        pendingRequests = await loadBedBookingRequests("pending");
         refreshVisibleBeds();
-        renderPendingRequests();
         setStatus("Live hospital bed data loaded from Supabase.", "success");
       } catch (error) {
         console.error("Error loading hospital beds:", error);
@@ -304,4 +259,6 @@
   </script>
 </body>
 </html>
+
+
 

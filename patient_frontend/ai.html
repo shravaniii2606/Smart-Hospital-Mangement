@@ -36,16 +36,16 @@
             <a class="hs-side-link" href="emergency.html">
               <span><i class="fa-solid fa-truck-medical"></i></span>
               <small>Emergency</small>
-            </a><a class="hs-side-link" href="reports.html">
-              <span><i class="fa-solid fa-file-medical"></i></span>
-              <small>Reports</small>
             </a>
             <a class="hs-side-link" href="prescriptions.html">
               <span><i class="fa-solid fa-prescription-bottle-medical"></i></span>
               <small>Prescriptions</small>
             </a>
           
-            <a class="hs-side-link" href="profile.html">
+                        <a class="hs-side-link" href="form.html">
+              <span><i class="fa-solid fa-clipboard-list"></i></span>
+              <small>Form</small>
+            </a><a class="hs-side-link" href="profile.html">
               <span><i class="fa-regular fa-user"></i></span>
               <small>Profile</small>
             </a>
@@ -95,18 +95,19 @@
                   <label class="hs-ai-label" for="aiText">Your message</label>
                   <textarea id="aiText" class="hs-ai-text" rows="3" placeholder="Your spoken text appears here..."></textarea>
 
-                  <div class="hs-ai-attachments">
-                    <label class="hs-ai-label" for="aiFiles">Attachments</label>
-                    <div class="hs-ai-attach-row">
-                      <input id="aiFiles" class="hs-ai-file" type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.txt,.doc,.docx" />
-                      <button class="hs-ai-attach-btn" id="aiAttachBtn" type="button">
-                        <i class="fa-solid fa-paperclip"></i>
-                        Attach files
-                      </button>
+                <div class="hs-ai-attachments">
+                  <label class="hs-ai-label" for="aiFiles">Attachments</label>
+                  <div class="hs-ai-attach-row">
+                    <input id="aiFiles" class="hs-ai-file" type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.txt,.doc,.docx" />
+                    <button class="hs-ai-attach-btn" id="aiAttachBtn" type="button">
+                      <i class="fa-solid fa-paperclip"></i>
+                      Attach files
+                    </button>
                      
-                    </div>
-                    
                   </div>
+                  <div id="aiFileList" class="hs-ai-file-list">No files attached.</div>
+                    
+                </div>
 
                   <button class="hs-ai-send" id="aiSend" type="button">Send</button>
                 </div>
@@ -374,4 +375,6 @@
   </script>
 </body>
 </html>
+
+
 
