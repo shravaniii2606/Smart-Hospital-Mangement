@@ -437,6 +437,30 @@ a {
   color: var(--text-1);
 }
 
+.hs-profile-edit-form {
+  display: grid;
+  gap: 12px;
+}
+
+.hs-profile-edit-form[hidden] {
+  display: none !important;
+}
+
+.hs-profile-field {
+  display: grid;
+  gap: 6px;
+}
+
+.hs-profile-field .input {
+  margin-bottom: 0;
+}
+
+.hs-profile-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .hs-label {
   font-size: 12px;
   color: var(--text-2);

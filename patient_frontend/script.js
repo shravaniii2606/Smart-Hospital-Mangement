@@ -32,6 +32,183 @@
     el.textContent = value || "-";
   }
 
+  function calculateAgeFromDob(dobValue) {
+    if (!dobValue) {
+      return "";
+    }
+
+    var dob = new Date(dobValue + "T00:00:00");
+    if (Number.isNaN(dob.getTime())) {
+      return "";
+    }
+
+    var today = new Date();
+    var years = today.getFullYear() - dob.getFullYear();
+    var months = today.getMonth() - dob.getMonth();
+
+    if (today.getDate() < dob.getDate()) {
+      months--;
+    }
+
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    if (years < 0) {
+      return "";
+    }
+
+    var yearLabel = years === 1 ? "year" : "years";
+    var monthLabel = months === 1 ? "month" : "months";
+    return years + " " + yearLabel + " " + months + " " + monthLabel;
+  }
+
+  function formatUnitValue(value, unit) {
+    if (value === null || value === undefined) {
+      return "-";
+    }
+
+    var text = String(value).trim();
+    if (!text) {
+      return "-";
+    }
+
+    if (text.toLowerCase().indexOf(unit.toLowerCase()) !== -1) {
+      return text;
+    }
+
+    return text + " " + unit;
+  }
+
+  function setInputValue(id, value) {
+    var el = document.getElementById(id);
+    if (!el) {
+      return;
+    }
+    el.value = value || "";
+  }
+
+  function toggleProfileEditMode(isEditing) {
+    var viewEl = document.getElementById("profileView");
+    var formEl = document.getElementById("profileEditForm");
+    var editBtn = document.getElementById("profileEditBtn");
+    var saveBtn = document.getElementById("profileSaveBtn");
+    var cancelBtn = document.getElementById("profileCancelBtn");
+
+    if (viewEl) {
+      viewEl.hidden = !!isEditing;
+    }
+    if (formEl) {
+      formEl.hidden = !isEditing;
+    }
+    if (editBtn) {
+      editBtn.hidden = !!isEditing;
+    }
+    if (saveBtn) {
+      saveBtn.hidden = !isEditing;
+    }
+    if (cancelBtn) {
+      cancelBtn.hidden = !isEditing;
+    }
+  }
+
+  function populateProfileForm(profile, user) {
+    setInputValue("profileEditName", profile.name || "");
+    setInputValue("profileEditEmail", profile.email || user.email || "");
+    setInputValue("profileEditPhone", profile.phone || "");
+    setInputValue("profileEditGender", profile.gender || "");
+    setInputValue("profileEditDob", profile.dob || "");
+    setInputValue("profileEditAge", calculateAgeFromDob(profile.dob || ""));
+    setInputValue("profileEditBlood", profile.blood_group || "");
+    setInputValue("profileEditHeight", profile.height || "");
+    setInputValue("profileEditWeight", profile.weight || "");
+  }
+
+  function renderProfileView(profile, user) {
+    setText("profileName", profile.name || user.email || "User");
+    setText("profileEmail", profile.email || user.email || "-");
+    setText("profilePhone", profile.phone);
+    setText("profileGender", profile.gender);
+    setText("profileDob", profile.dob);
+    setText("profileAge", profile.age || calculateAgeFromDob(profile.dob || ""));
+    setText("profileBlood", profile.blood_group);
+    setText("profileHeight", formatUnitValue(profile.height, "ft"));
+    setText("profileWeight", formatUnitValue(profile.weight, "kg"));
+  }
+
+  function bindAgeAutoCalculation(dobId, ageId) {
+    var dobInput = document.getElementById(dobId);
+    var ageInput = document.getElementById(ageId);
+    if (!dobInput || !ageInput || dobInput.dataset.ageBound === "true") {
+      return;
+    }
+
+    var updateAge = function () {
+      ageInput.value = calculateAgeFromDob(dobInput.value);
+    };
+
+    dobInput.dataset.ageBound = "true";
+    dobInput.addEventListener("change", updateAge);
+    dobInput.addEventListener("input", updateAge);
+    updateAge();
+  }
+
+  function bindDobBounds(dobId) {
+    var dobInput = document.getElementById(dobId);
+    if (!dobInput) {
+      return;
+    }
+
+    var today = new Date();
+    var max = today.toISOString().split("T")[0];
+    var minDate = new Date(today.getFullYear() - 120, today.getMonth(), today.getDate());
+    var min = minDate.toISOString().split("T")[0];
+    dobInput.min = min;
+    dobInput.max = max;
+  }
+
+  async function saveProfile(client) {
+    if (!client) {
+      showError("profileError", "Supabase client not loaded.");
+      return;
+    }
+
+    var userResult = await client.auth.getUser();
+    if (userResult.error || !userResult.data || !userResult.data.user) {
+      showError("profileError", "Please login to update your profile.");
+      return;
+    }
+
+    var user = userResult.data.user;
+    var dob = (document.getElementById("profileEditDob") || {}).value || "";
+    var payload = {
+      user_id: user.id,
+      name: ((document.getElementById("profileEditName") || {}).value || "").trim() || "User",
+      email: ((document.getElementById("profileEditEmail") || {}).value || user.email || "").trim(),
+      phone: ((document.getElementById("profileEditPhone") || {}).value || "").trim(),
+      gender: ((document.getElementById("profileEditGender") || {}).value || "").trim(),
+      dob: dob,
+      age: calculateAgeFromDob(dob),
+      blood_group: ((document.getElementById("profileEditBlood") || {}).value || "").trim(),
+      height: ((document.getElementById("profileEditHeight") || {}).value || "").trim(),
+      weight: ((document.getElementById("profileEditWeight") || {}).value || "").trim()
+    };
+
+    var profileResult = await client
+      .from("patient_profile")
+      .upsert(payload, { onConflict: "user_id" });
+
+    if (profileResult.error) {
+      showError("profileError", profileResult.error.message || "Unable to save profile.");
+      return;
+    }
+
+    await hydrateProfile(client);
+    toggleProfileEditMode(false);
+    showError("profileError", "");
+  }
+
   function isUpcomingAppointment(appt) {
     if (!appt || !appt.appointment_date) {
       return false;
@@ -198,15 +375,8 @@
     }
 
     var profile = profileResult.data || {};
-    setText("profileName", profile.name || user.email || "User");
-    setText("profileEmail", profile.email || user.email || "-");
-    setText("profilePhone", profile.phone);
-    setText("profileGender", profile.gender);
-    setText("profileDob", profile.dob);
-    setText("profileAge", profile.age);
-    setText("profileBlood", profile.blood_group);
-    setText("profileHeight", profile.height);
-    setText("profileWeight", profile.weight);
+    renderProfileView(profile, user);
+    populateProfileForm(profile, user);
 
     showError("profileError", "");
   }
@@ -217,12 +387,39 @@
     hydrateHomeName(client);
     loadHomeAppointments(client);
     hydrateProfile(client);
+    bindDobBounds("signupDob");
+    bindDobBounds("profileEditDob");
+    bindAgeAutoCalculation("signupDob", "signupAge");
+    bindAgeAutoCalculation("profileEditDob", "profileEditAge");
 
     var logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn && client) {
       logoutBtn.addEventListener("click", async function () {
         await client.auth.signOut();
         window.location.href = "login.html";
+      });
+    }
+
+    var profileEditBtn = document.getElementById("profileEditBtn");
+    if (profileEditBtn) {
+      profileEditBtn.addEventListener("click", function () {
+        toggleProfileEditMode(true);
+        showError("profileError", "");
+      });
+    }
+
+    var profileCancelBtn = document.getElementById("profileCancelBtn");
+    if (profileCancelBtn) {
+      profileCancelBtn.addEventListener("click", function () {
+        toggleProfileEditMode(false);
+        showError("profileError", "");
+      });
+    }
+
+    var profileSaveBtn = document.getElementById("profileSaveBtn");
+    if (profileSaveBtn) {
+      profileSaveBtn.addEventListener("click", async function () {
+        await saveProfile(client);
       });
     }
 
