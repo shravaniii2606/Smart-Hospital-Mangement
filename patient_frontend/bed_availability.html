@@ -33,16 +33,44 @@
       <div class="body">
         <div class="hs-layout">
           <nav class="hs-sidebar" aria-label="Home sections">
-            <a class="hs-side-link" href="patient_home.html"><span><i class="fa-solid fa-house"></i></span><small>Home</small></a>
-            <a class="hs-side-link" href="ai.html"><span><i class="fa-solid fa-robot"></i></span><small>AI Chatbot</small></a>
-            <a class="hs-side-link" href="doctors.html"><span><i class="fa-solid fa-user-doctor"></i></span><small>Find Doctors</small></a>
-            <a class="hs-side-link active" href="bed_availability.html"><span><i class="fa-solid fa-bed"></i></span><small>Bed Availability</small></a>
-            <a class="hs-side-link" href="appointments.html"><span><i class="fa-solid fa-calendar-check"></i></span><small>My Appointments</small></a>
-            <a class="hs-side-link" href="emergency.html"><span><i class="fa-solid fa-truck-medical"></i></span><small>Emergency</small></a>
-            <a class="hs-side-link" href="profile.html"><span><i class="fa-regular fa-user"></i></span><small>Profile</small></a>
-            <a class="hs-side-link" href="reports.html"><span><i class="fa-solid fa-file-medical"></i></span><small>Reports</small></a>
-            <a class="hs-side-link" href="prescriptions.html"><span><i class="fa-solid fa-prescription-bottle-medical"></i></span><small>Prescriptions</small></a>
-          </nav>
+            <a class="hs-side-link" href="patient_home.html">
+              <span><i class="fa-solid fa-house"></i></span>
+              <small>Home</small>
+            </a>
+            <a class="hs-side-link" href="ai.html">
+              <span><i class="fa-solid fa-robot"></i></span>
+              <small>AI Chatbot</small>
+            </a>
+            <a class="hs-side-link" href="doctors.html">
+              <span><i class="fa-solid fa-user-doctor"></i></span>
+              <small>Find Doctors</small>
+            </a>
+            <a class="hs-side-link active" href="bed_availability.html">
+              <span><i class="fa-solid fa-bed"></i></span>
+              <small>Bed Availability</small>
+            </a>
+            <a class="hs-side-link" href="appointments.html">
+              <span><i class="fa-solid fa-calendar-check"></i></span>
+              <small>My Appointments</small>
+            </a>
+            <a class="hs-side-link" href="emergency.html">
+              <span><i class="fa-solid fa-truck-medical"></i></span>
+              <small>Emergency</small>
+            </a><a class="hs-side-link" href="reports.html">
+              <span><i class="fa-solid fa-file-medical"></i></span>
+              <small>Reports</small>
+            </a>
+            <a class="hs-side-link" href="prescriptions.html">
+              <span><i class="fa-solid fa-prescription-bottle-medical"></i></span>
+              <small>Prescriptions</small>
+            </a>
+          
+            <a class="hs-side-link" href="profile.html">
+              <span><i class="fa-regular fa-user"></i></span>
+              <small>Profile</small>
+            </a>
+            </nav>
+
           <section class="hs-main">
             <div class="hs-brand-row">
               <div class="hs-brand-logo"><i class="fa-solid fa-heart-pulse"></i></div>
@@ -73,6 +101,41 @@
               <div id="bookingMessage" class="hs-booking-message" hidden></div>
               <div id="bedList" class="hs-bed-grid" aria-live="polite"></div>
               <div id="bedEmpty" class="hs-bed-empty" hidden>No available beds found right now.</div>
+            </section>
+
+            <section class="hs-hospital-grid" aria-label="Hospital list">
+              <a class="hs-hospital-card is-clickable" href="city_hospital.html">
+                <div class="hs-hospital-head">
+                  <div class="hs-hospital-icon"><i class="fa-solid fa-hospital"></i></div>
+                  <div>
+                    <h3>City Hospital</h3>
+                    <p>M.G. Road, Bengaluru</p>
+                  </div>
+                </div>
+                <span class="hs-hospital-action">Open details</span>
+              </a>
+
+              <div class="hs-hospital-card is-hoverable" tabindex="0">
+                <div class="hs-hospital-head">
+                  <div class="hs-hospital-icon"><i class="fa-solid fa-hospital"></i></div>
+                  <div>
+                    <h3>Sunrise Care Hospital</h3>
+                    <p>Anna Nagar, Chennai</p>
+                  </div>
+                </div>
+                <span class="hs-hospital-action">Open details</span>
+              </div>
+
+              <div class="hs-hospital-card is-hoverable" tabindex="0">
+                <div class="hs-hospital-head">
+                  <div class="hs-hospital-icon"><i class="fa-solid fa-hospital"></i></div>
+                  <div>
+                    <h3>Lifeline Multispeciality Hospital</h3>
+                    <p>Hitech City, Hyderabad</p>
+                  </div>
+                </div>
+                <span class="hs-hospital-action">Open details</span>
+              </div>
             </section>
           </section>
         </div>
@@ -258,3 +321,4 @@
   </script>
 </body>
 </html>
+

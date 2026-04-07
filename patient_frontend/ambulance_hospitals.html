@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Home - HealthSphere</title>
+  <title>Select Hospital - Ambulance</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -13,7 +13,7 @@
       <div class="body">
         <div class="hs-layout">
           <nav class="hs-sidebar" aria-label="Home sections">
-            <a class="hs-side-link active" href="patient_home.html">
+            <a class="hs-side-link" href="patient_home.html">
               <span><i class="fa-solid fa-house"></i></span>
               <small>Home</small>
             </a>
@@ -33,7 +33,7 @@
               <span><i class="fa-solid fa-calendar-check"></i></span>
               <small>My Appointments</small>
             </a>
-            <a class="hs-side-link" href="emergency.html">
+            <a class="hs-side-link active" href="emergency.html">
               <span><i class="fa-solid fa-truck-medical"></i></span>
               <small>Emergency</small>
             </a><a class="hs-side-link" href="reports.html">
@@ -55,44 +55,64 @@
             <div class="hs-brand-row">
               <div class="hs-brand-logo"><i class="fa-solid fa-heart-pulse"></i></div>
               <div class="hs-brand-name">HealthSphere</div>
-              <button id="logoutBtn" class="logout-link" type="button">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span>Logout</span>
-              </button>
             </div>
 
             <header class="hs-greet-row">
               <div>
-                <p class="hs-hello">Hello,</p>
-                <h2 class="hs-name" id="welcomeName">John</h2>
+                <p class="hs-hello">Emergency</p>
+                <h2 class="hs-name">Select Hospital</h2>
               </div>
             </header>
 
             <section class="hs-location-card">
               <div class="hs-location-row">
-                <div class="hs-location-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="hs-location-icon"><i class="fa-solid fa-hospital"></i></div>
                 <div>
-                  <h4>Upcoming Appointments</h4>
-                  <p>Your next visits appear here.</p>
+                  <h4>Available Ambulance Partners</h4>
+                  <p>Choose a hospital to book an ambulance.</p>
                 </div>
               </div>
-              <div id="homeAppointmentsList" class="hs-recent-list" style="margin-top: 12px;"></div>
-              <div id="homeAppointmentsEmpty" class="hs-recent-empty" style="display: none;">
-                No upcoming appointments.
+            </section>
+
+            <section class="hs-hospital-grid" aria-label="Ambulance hospitals">
+              <a class="hs-hospital-card is-clickable" href="ambulance_booking.html">
+                <div class="hs-hospital-head">
+                  <div class="hs-hospital-icon"><i class="fa-solid fa-hospital"></i></div>
+                  <div>
+                    <h3>City Hospital</h3>
+                    <p>M.G. Road, Bengaluru</p>
+                  </div>
+                </div>
+                <span class="hs-hospital-action">Book ambulance</span>
+              </a>
+
+              <div class="hs-hospital-card is-hoverable" tabindex="0">
+                <div class="hs-hospital-head">
+                  <div class="hs-hospital-icon"><i class="fa-solid fa-hospital"></i></div>
+                  <div>
+                    <h3>Sunrise Care Hospital</h3>
+                    <p>Anna Nagar, Chennai</p>
+                  </div>
+                </div>
+                <span class="hs-hospital-action">Coming soon</span>
               </div>
-              <a class="btn btn-secondary" href="appointments.html">View all appointments</a>
+
+              <div class="hs-hospital-card is-hoverable" tabindex="0">
+                <div class="hs-hospital-head">
+                  <div class="hs-hospital-icon"><i class="fa-solid fa-hospital"></i></div>
+                  <div>
+                    <h3>Lifeline Multispeciality Hospital</h3>
+                    <p>Hitech City, Hyderabad</p>
+                  </div>
+                </div>
+                <span class="hs-hospital-action">Coming soon</span>
+              </div>
             </section>
           </section>
         </div>
       </div>
-
     </article>
   </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="script.js"></script>
 </body>
 </html>
-
-
 

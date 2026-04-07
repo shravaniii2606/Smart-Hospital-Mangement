@@ -36,12 +36,7 @@
             <a class="hs-side-link" href="emergency.html">
               <span><i class="fa-solid fa-truck-medical"></i></span>
               <small>Emergency</small>
-            </a>
-            <a class="hs-side-link" href="profile.html">
-              <span><i class="fa-regular fa-user"></i></span>
-              <small>Profile</small>
-            </a>
-            <a class="hs-side-link" href="reports.html">
+            </a><a class="hs-side-link" href="reports.html">
               <span><i class="fa-solid fa-file-medical"></i></span>
               <small>Reports</small>
             </a>
@@ -49,7 +44,12 @@
               <span><i class="fa-solid fa-prescription-bottle-medical"></i></span>
               <small>Prescriptions</small>
             </a>
-          </nav>
+          
+            <a class="hs-side-link" href="profile.html">
+              <span><i class="fa-regular fa-user"></i></span>
+              <small>Profile</small>
+            </a>
+            </nav>
 
           <section class="hs-main">
             <div class="hs-brand-row">
@@ -76,6 +76,10 @@
                 <button class="hs-chip active" type="button" data-filter="all">All</button>
                 <button class="hs-chip" type="button" data-filter="upcoming">Upcoming</button>
                 <button class="hs-chip" type="button" data-filter="previous">Previous</button>
+              </div>
+              <div id="previousFilters" class="hs-chip-row" style="margin-top: 8px; display: none;">
+                <button class="hs-chip" type="button" data-filter="approved">Approved</button>
+                <button class="hs-chip" type="button" data-filter="cancelled">Cancelled</button>
               </div>
               <div id="appointmentsList" class="hs-recent-list" style="margin-top: 12px;"></div>
               <div id="appointmentsEmpty" class="hs-recent-empty" style="display: none;">
@@ -104,6 +108,7 @@
       const listEl = document.getElementById("appointmentsList");
       const emptyEl = document.getElementById("appointmentsEmpty");
       const filterButtons = Array.from(document.querySelectorAll("[data-filter]"));
+      const previousFilters = document.getElementById("previousFilters");
       let allAppointments = [];
       let activeFilter = "all";
 
@@ -147,6 +152,12 @@
         }
         if (activeFilter === "previous") {
           return rows.filter((appt) => !isUpcoming(appt) || appt.status === "cancelled");
+        }
+        if (activeFilter === "approved") {
+          return rows.filter((appt) => appt.status === "approved");
+        }
+        if (activeFilter === "cancelled") {
+          return rows.filter((appt) => appt.status === "cancelled");
         }
         return rows;
       }
@@ -271,6 +282,9 @@
           filterButtons.forEach((b) => b.classList.remove("active"));
           btn.classList.add("active");
           activeFilter = btn.dataset.filter || "all";
+          if (previousFilters) {
+            previousFilters.style.display = activeFilter === "previous" ? "flex" : "none";
+          }
           renderAppointments(allAppointments);
         });
       });
@@ -299,3 +313,4 @@
   </script>
 </body>
 </html>
+

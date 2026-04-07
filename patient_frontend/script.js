@@ -32,6 +32,115 @@
     el.textContent = value || "-";
   }
 
+  function isUpcomingAppointment(appt) {
+    if (!appt || !appt.appointment_date) {
+      return false;
+    }
+    var now = new Date();
+    var datePart = appt.appointment_date;
+    var apptDateOnly = new Date(datePart + "T00:00:00");
+    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    if (apptDateOnly > today) {
+      return true;
+    }
+    if (apptDateOnly < today) {
+      return false;
+    }
+
+    if (!appt.appointment_time) {
+      return false;
+    }
+
+    var timeParts = appt.appointment_time.split(":");
+    var hours = Number(timeParts[0]);
+    var minutes = Number(timeParts[1]);
+    if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+      return false;
+    }
+
+    var apptDateTime = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      hours,
+      minutes
+    );
+
+    return apptDateTime > now;
+  }
+
+  function renderHomeAppointments(rows) {
+    var listEl = document.getElementById("homeAppointmentsList");
+    var emptyEl = document.getElementById("homeAppointmentsEmpty");
+    if (!listEl || !emptyEl) {
+      return;
+    }
+
+    if (!rows || rows.length === 0) {
+      listEl.innerHTML = "";
+      emptyEl.style.display = "block";
+      return;
+    }
+
+    emptyEl.style.display = "none";
+    listEl.innerHTML = rows
+      .map(function (appt) {
+        return (
+          "<div class=\"hs-recent-item\">" +
+          "<div>" +
+          "<strong>" +
+          (appt.doctor_name || "Doctor") +
+          "</strong>" +
+          "<span>" +
+          (appt.doctor_specialty || "Specialist") +
+          "</span>" +
+          "<span>Date: " +
+          (appt.appointment_date || "-") +
+          " · Time: " +
+          (appt.appointment_time || "-") +
+          "</span>" +
+          "</div>" +
+          "<span class=\"appt-status-badge upcoming\">Upcoming</span>" +
+          "</div>"
+        );
+      })
+      .join("");
+  }
+
+  async function loadHomeAppointments(client) {
+    var listEl = document.getElementById("homeAppointmentsList");
+    var emptyEl = document.getElementById("homeAppointmentsEmpty");
+    if (!listEl || !emptyEl || !client) {
+      return;
+    }
+
+    var userResult = await client.auth.getUser();
+    if (userResult.error || !userResult.data || !userResult.data.user) {
+      renderHomeAppointments([]);
+      return;
+    }
+
+    var userId = userResult.data.user.id;
+    var result = await client
+      .from("appointments")
+      .select("*")
+      .eq("user_id", userId)
+      .order("appointment_date", { ascending: true })
+      .order("appointment_time", { ascending: true });
+
+    if (result.error) {
+      renderHomeAppointments([]);
+      return;
+    }
+
+    var upcoming = (result.data || []).filter(function (appt) {
+      return isUpcomingAppointment(appt) && appt.status !== "cancelled";
+    });
+
+    renderHomeAppointments(upcoming);
+  }
+
   async function hydrateHomeName(client) {
     var nameEl = document.getElementById("welcomeName");
     if (!nameEl || !client) {
@@ -106,6 +215,7 @@
     var client = getSupabaseClient();
 
     hydrateHomeName(client);
+    loadHomeAppointments(client);
     hydrateProfile(client);
 
     var logoutBtn = document.getElementById("logoutBtn");
