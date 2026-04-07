@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hospital Form - HealthSphere Hospital</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --navy:#0f2b63; --blue:#0b4ea2; --sky:#17a2b8; --text:#17233d; --muted:#5d6f8f; --line:#dce6f2; }
+    body { min-height:100vh; font-family:Poppins, Arial, sans-serif; background:radial-gradient(circle at top left, rgba(23,162,184,.15), transparent 22%), linear-gradient(180deg, #f7fbff 0%, #edf4fb 100%); color:var(--text); padding:24px; }
+    .dashboard { max-width:1320px; margin:0 auto; display:flex; gap:18px; align-items:flex-start; min-height:calc(100vh - 48px); }
+    .sidebar-shell { width:138px; flex:0 0 138px; background:linear-gradient(180deg, var(--navy), #14346b 56%, #0c204f); border-radius:26px; box-shadow:0 18px 42px rgba(15,43,99,.18); padding:16px 12px; }
+    .sidebar { display:grid; gap:22px; align-content:start; }
+    .side-link { min-height:76px; border-radius:18px; padding:10px 8px; background:rgba(255,255,255,.08); color:#eef4ff; text-decoration:none; display:grid; justify-items:center; align-content:center; gap:8px; text-align:center; }
+    .side-link.active { background:rgba(255,255,255,.22); border:1px solid rgba(255,255,255,.14); }
+    .side-link span { width:40px; height:40px; border-radius:14px; background:rgba(255,255,255,.12); display:grid; place-items:center; font-size:18px; }
+    .side-link small { font-size:12px; line-height:1.2; font-weight:700; }
+    .content { flex:1; display:grid; gap:22px; }
+    .brand-row { display:flex; align-items:center; gap:12px; padding:6px 2px 0; }
+    .brand-logo { width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg, #2d75d7, #0f56b9); color:#fff; display:grid; place-items:center; box-shadow:0 12px 26px rgba(11,78,162,.22); }
+    .brand-name { font-size:20px; font-weight:800; color:#1a2741; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:26px; padding:28px; box-shadow:0 14px 30px rgba(23,35,61,.06); }
+    .card h1 { font-size:clamp(30px, 4vw, 42px); margin-bottom:8px; }
+    .card p { color:var(--muted); line-height:1.6; }
+    .note { margin-top:18px; padding:14px 16px; border-radius:16px; border:1px dashed #c7d7e7; background:#f8fbff; color:var(--muted); }
+    .form-grid { margin-top:20px; display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; }
+    .form-item { border:1px solid var(--line); border-radius:20px; padding:18px; background:linear-gradient(135deg, rgba(11,78,162,.04), rgba(23,162,184,.1)); display:grid; gap:12px; transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+    .form-item:hover { transform:translateY(-2px); border-color:#c7d7ef; box-shadow:0 14px 24px rgba(23,35,61,.08); }
+    .form-item h3 { font-size:18px; }
+    .form-item p { font-size:13px; }
+    .form-actions { display:flex; gap:10px; flex-wrap:wrap; }
+    .assign-btn { border:0; border-radius:14px; padding:10px 14px; font-size:13px; font-weight:700; cursor:pointer; color:#fff; background:linear-gradient(135deg, var(--blue), var(--sky)); box-shadow:0 10px 18px rgba(11,78,162,.18); }
+    .assign-btn.assigned { background:linear-gradient(135deg, #1f9d50, #52b77d); }
+    .cancel-btn { border:0; border-radius:14px; padding:10px 14px; font-size:13px; font-weight:700; cursor:pointer; color:#fff; background:linear-gradient(135deg, #c53b3b, #e16464); box-shadow:0 10px 18px rgba(197,59,59,.18); }
+    .is-hidden { display:none; }
+    @media (max-width:980px) { .dashboard { display:grid; } .sidebar-shell { width:100%; } .sidebar { grid-template-columns:repeat(3, minmax(0, 1fr)); } }
+    @media (max-width:640px) { body { padding:12px; } .sidebar { grid-template-columns:repeat(2, minmax(0, 1fr)); } .card { padding:20px; } }
+  </style>
+</head>
+<body>
+  <main class="dashboard">
+    <aside class="sidebar-shell">
+      <nav class="sidebar" aria-label="Hospital sections">
+        <a class="side-link" href="hospital_home.html"><span><i class="fa-solid fa-house"></i></span><small>Home</small></a>
+        <a class="side-link" href="hospital_doctors.html"><span><i class="fa-solid fa-user-doctor"></i></span><small>Add Doctors</small></a>
+        <a class="side-link" href="hospital_bed_availability.html"><span><i class="fa-solid fa-bed"></i></span><small>Bed Availability</small></a>
+        <a class="side-link" href="hospital_appointments.html"><span><i class="fa-solid fa-calendar-check"></i></span><small>Appointments</small></a>
+        <a class="side-link active" href="hospital_patients.html"><span><i class="fa-solid fa-hospital-user"></i></span><small>Patient</small></a>
+        <a class="side-link" href="hospital_emergency.html"><span><i class="fa-solid fa-truck-medical"></i></span><small>Emergency</small></a>
+      </nav>
+    </aside>
+    <section class="content">
+      <div class="brand-row">
+        <div class="brand-logo"><i class="fa-solid fa-heart-pulse"></i></div>
+        <div class="brand-name">HealthSphere</div>
+      </div>
+      <section class="card">
+        <h1>Hospital Form</h1>
+        <p>Assign the required form to the patient. Each item becomes "Assigned" once you click the button.</p>
+        <div class="form-grid" id="formGrid">
+          <div class="form-item" data-form data-form-name="Admission Form">
+            <h3>Admission Form</h3>
+            <p>Capture admission details and initial assessment.</p>
+            
+            <div class="form-actions">
+              <button class="assign-btn" type="button" data-assign>Assign</button>
+              <button class="cancel-btn is-hidden" type="button" data-cancel>Cancel</button>
+            </div>
+          </div>
+          <div class="form-item" data-form data-form-name="Consent Form">
+            <h3>Consent Form</h3>
+            <p>Record informed consent before procedures.</p>
+            
+            <div class="form-actions">
+              <button class="assign-btn" type="button" data-assign>Assign</button>
+              <button class="cancel-btn is-hidden" type="button" data-cancel>Cancel</button>
+            </div>
+          </div>
+          <div class="form-item" data-form data-form-name="Medical History Form">
+            <h3>Medical History Form</h3>
+            <p>Document medical history and ongoing conditions.</p>
+            
+            <div class="form-actions">
+              <button class="assign-btn" type="button" data-assign>Assign</button>
+              <button class="cancel-btn is-hidden" type="button" data-cancel>Cancel</button>
+            </div>
+          </div>
+          <div class="form-item" data-form data-form-name="Lab Request Forms">
+            <h3>Lab Request Forms</h3>
+            <p>Order lab investigations and diagnostics.</p>
+            
+            <div class="form-actions">
+              <button class="assign-btn" type="button" data-assign>Assign</button>
+              <button class="cancel-btn is-hidden" type="button" data-cancel>Cancel</button>
+            </div>
+          </div>
+          <div class="form-item" data-form data-form-name="Discharge Forms">
+            <h3>Discharge Forms</h3>
+            <p>Finalize discharge checklist and instructions.</p>
+            
+            <div class="form-actions">
+              <button class="assign-btn" type="button" data-assign>Assign</button>
+              <button class="cancel-btn is-hidden" type="button" data-cancel>Cancel</button>
+            </div>
+          </div>
+        </div>
+       
+      </section>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
+
+    function getSupabaseClient() {
+      if (typeof supabase === "undefined" || !supabase.createClient) {
+        return null;
+      }
+      return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    const query = new URLSearchParams(window.location.search);
+    const patientId = query.get("id") || "";
+    const assignedSet = new Set();
+
+    function syncCardState(card) {
+      const formName = card.getAttribute("data-form-name") || "";
+      const assignBtn = card.querySelector("[data-assign]");
+      const cancelBtn = card.querySelector("[data-cancel]");
+      if (!assignBtn || !cancelBtn) return;
+
+      if (assignedSet.has(formName)) {
+        assignBtn.classList.add("assigned");
+        assignBtn.textContent = "Assigned";
+        assignBtn.disabled = true;
+        cancelBtn.classList.remove("is-hidden");
+      } else {
+        assignBtn.classList.remove("assigned");
+        assignBtn.textContent = "Assign";
+        assignBtn.disabled = false;
+        cancelBtn.classList.add("is-hidden");
+      }
+    }
+
+    async function loadAssignedForms() {
+      const client = getSupabaseClient();
+      if (!client || !patientId) {
+        document.querySelectorAll("[data-form]").forEach(syncCardState);
+        return;
+      }
+
+      const { data, error } = await client
+        .from("patient_form_assignments")
+        .select("form_name")
+        .eq("patient_id", patientId);
+
+      if (error) {
+        console.error("Error loading assigned forms:", error);
+        document.querySelectorAll("[data-form]").forEach(syncCardState);
+        return;
+      }
+
+      assignedSet.clear();
+      (data || []).forEach((row) => {
+        if (row && row.form_name) {
+          assignedSet.add(row.form_name);
+        }
+      });
+      document.querySelectorAll("[data-form]").forEach(syncCardState);
+    }
+
+    loadAssignedForms();
+
+    document.getElementById("formGrid").addEventListener("click", function (event) {
+      const formCard = event.target.closest("[data-form]");
+      if (formCard && !event.target.closest("button")) {
+        formCard.classList.toggle("is-open");
+        return;
+      }
+
+      const assignBtn = event.target.closest("[data-assign]");
+      const cancelBtn = event.target.closest("[data-cancel]");
+
+      if (assignBtn) {
+        const card = assignBtn.closest("[data-form]");
+        const formName = card ? card.getAttribute("data-form-name") : "";
+        if (!patientId) {
+          alert("Open this form from a patient profile so the assignment is linked to a patient.");
+          return;
+        }
+        if (formName) {
+          const client = getSupabaseClient();
+          if (client) {
+            client
+              .from("patient_form_assignments")
+              .upsert(
+                { patient_id: patientId, form_name: formName, status: "assigned" },
+                { onConflict: "patient_id,form_name" }
+              )
+              .then(({ error }) => {
+                if (error) {
+                  console.error("Error assigning form:", error);
+                  alert("Unable to assign this form right now.");
+                  return;
+                }
+                assignedSet.add(formName);
+                if (card) {
+                  syncCardState(card);
+                }
+              });
+          }
+        }
+        return;
+      }
+
+      if (cancelBtn) {
+        const card = cancelBtn.closest("[data-form]");
+        const formName = card ? card.getAttribute("data-form-name") : "";
+        if (!patientId) {
+          alert("Open this form from a patient profile so the assignment is linked to a patient.");
+          return;
+        }
+        if (formName) {
+          const client = getSupabaseClient();
+          if (client) {
+            client
+              .from("patient_form_assignments")
+              .delete()
+              .eq("patient_id", patientId)
+              .eq("form_name", formName)
+              .then(({ error }) => {
+                if (error) {
+                  console.error("Error cancelling form:", error);
+                  alert("Unable to cancel this form right now.");
+                  return;
+                }
+                assignedSet.delete(formName);
+                if (card) {
+                  syncCardState(card);
+                }
+              });
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
