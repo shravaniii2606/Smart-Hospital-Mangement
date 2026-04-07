@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bed Availability - HealthSphere</title>
+  <title>Select Hospital - Ambulance</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -25,7 +25,7 @@
               <span><i class="fa-solid fa-user-doctor"></i></span>
               <small>Find Doctors</small>
             </a>
-            <a class="hs-side-link active" href="bed_availability.html">
+            <a class="hs-side-link" href="bed_availability.html">
               <span><i class="fa-solid fa-bed"></i></span>
               <small>Bed Availability</small>
             </a>
@@ -33,7 +33,7 @@
               <span><i class="fa-solid fa-calendar-check"></i></span>
               <small>My Appointments</small>
             </a>
-            <a class="hs-side-link" href="emergency.html">
+            <a class="hs-side-link active" href="emergency.html">
               <span><i class="fa-solid fa-truck-medical"></i></span>
               <small>Emergency</small>
             </a><a class="hs-side-link" href="reports.html">
@@ -59,27 +59,23 @@
 
             <header class="hs-greet-row">
               <div>
-                <p class="hs-hello">Section</p>
-                <h2 class="hs-name">Bed Availability</h2>
+                <p class="hs-hello">Emergency</p>
+                <h2 class="hs-name">Select Hospital</h2>
               </div>
             </header>
 
             <section class="hs-location-card">
               <div class="hs-location-row">
-                <div class="hs-location-icon"><i class="fa-solid fa-bed"></i></div>
+                <div class="hs-location-icon"><i class="fa-solid fa-hospital"></i></div>
                 <div>
-                  <h4>Hospital Beds</h4>
-                  
+                  <h4>Available Ambulance Partners</h4>
+                  <p>Choose a hospital to book an ambulance.</p>
                 </div>
-              </div>
-              <div class="hs-search-input">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input class="input" type="text" placeholder="Search hospital" />
               </div>
             </section>
 
-            <section class="hs-hospital-grid" aria-label="Hospital list">
-              <a class="hs-hospital-card is-clickable" href="city_hospital.html">
+            <section class="hs-hospital-grid" aria-label="Ambulance hospitals">
+              <a class="hs-hospital-card is-clickable" href="ambulance_booking.html">
                 <div class="hs-hospital-head">
                   <div class="hs-hospital-icon"><i class="fa-solid fa-hospital"></i></div>
                   <div>
@@ -87,7 +83,7 @@
                     <p>M.G. Road, Bengaluru</p>
                   </div>
                 </div>
-                <span class="hs-hospital-action">Open details</span>
+                <span class="hs-hospital-action">Book ambulance</span>
               </a>
 
               <div class="hs-hospital-card is-hoverable" tabindex="0">
@@ -98,7 +94,7 @@
                     <p>Anna Nagar, Chennai</p>
                   </div>
                 </div>
-                <span class="hs-hospital-action">Open details</span>
+                <span class="hs-hospital-action">Coming soon</span>
               </div>
 
               <div class="hs-hospital-card is-hoverable" tabindex="0">
@@ -109,7 +105,7 @@
                     <p>Hitech City, Hyderabad</p>
                   </div>
                 </div>
-                <span class="hs-hospital-action">Open details</span>
+                <span class="hs-hospital-action">Coming soon</span>
               </div>
             </section>
           </section>

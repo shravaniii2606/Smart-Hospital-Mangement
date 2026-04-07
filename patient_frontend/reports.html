@@ -18,11 +18,11 @@
             <a class="hs-side-link" href="doctors.html"><span><i class="fa-solid fa-user-doctor"></i></span><small>Find Doctors</small></a>
             <a class="hs-side-link" href="bed_availability.html"><span><i class="fa-solid fa-bed"></i></span><small>Bed Availability</small></a>
             <a class="hs-side-link" href="appointments.html"><span><i class="fa-solid fa-calendar-check"></i></span><small>My Appointments</small></a>
-            <a class="hs-side-link" href="emergency.html"><span><i class="fa-solid fa-truck-medical"></i></span><small>Emergency</small></a>
-            <a class="hs-side-link" href="profile.html"><span><i class="fa-regular fa-user"></i></span><small>Profile</small></a>
-            <a class="hs-side-link active" href="reports.html"><span><i class="fa-solid fa-file-medical"></i></span><small>Reports</small></a>
+            <a class="hs-side-link" href="emergency.html"><span><i class="fa-solid fa-truck-medical"></i></span><small>Emergency</small></a><a class="hs-side-link active" href="reports.html"><span><i class="fa-solid fa-file-medical"></i></span><small>Reports</small></a>
             <a class="hs-side-link" href="prescriptions.html"><span><i class="fa-solid fa-prescription-bottle-medical"></i></span><small>Prescriptions</small></a>
-          </nav>
+          
+            <a class="hs-side-link" href="profile.html"><span><i class="fa-regular fa-user"></i></span><small>Profile</small></a>
+            </nav>
 
           <section class="hs-main">
             <div class="hs-brand-row">
@@ -142,6 +142,34 @@
         renderReports(result.data || []);
       }
 
+      function openReportFile(fileData, fileType) {
+        if (!fileData) return;
+        var mime = fileType || "application/pdf";
+        if (fileData.startsWith("http://") || fileData.startsWith("https://")) {
+          window.location.href = fileData;
+          return;
+        }
+        if (fileData.startsWith("data:")) {
+          window.location.href = fileData;
+          return;
+        }
+
+        try {
+          var base64 = fileData;
+          var byteChars = atob(base64);
+          var byteNumbers = new Array(byteChars.length);
+          for (var i = 0; i < byteChars.length; i += 1) {
+            byteNumbers[i] = byteChars.charCodeAt(i);
+          }
+          var byteArray = new Uint8Array(byteNumbers);
+          var blob = new Blob([byteArray], { type: mime });
+          var url = URL.createObjectURL(blob);
+          window.location.href = url;
+        } catch (_err) {
+          return;
+        }
+      }
+
       document.getElementById("reportsList").addEventListener("click", async function (event) {
         const button = event.target.closest("[data-view]");
         if (!button) return;
@@ -160,7 +188,7 @@
           return;
         }
 
-        window.open(result.data.file_data, "_blank");
+        openReportFile(result.data.file_data, result.data.file_type);
       });
 
       loadReports();
@@ -168,3 +196,4 @@
   </script>
 </body>
 </html>
+

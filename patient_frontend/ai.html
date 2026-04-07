@@ -36,12 +36,7 @@
             <a class="hs-side-link" href="emergency.html">
               <span><i class="fa-solid fa-truck-medical"></i></span>
               <small>Emergency</small>
-            </a>
-            <a class="hs-side-link" href="profile.html">
-              <span><i class="fa-regular fa-user"></i></span>
-              <small>Profile</small>
-            </a>
-            <a class="hs-side-link" href="reports.html">
+            </a><a class="hs-side-link" href="reports.html">
               <span><i class="fa-solid fa-file-medical"></i></span>
               <small>Reports</small>
             </a>
@@ -49,7 +44,12 @@
               <span><i class="fa-solid fa-prescription-bottle-medical"></i></span>
               <small>Prescriptions</small>
             </a>
-          </nav>
+          
+            <a class="hs-side-link" href="profile.html">
+              <span><i class="fa-regular fa-user"></i></span>
+              <small>Profile</small>
+            </a>
+            </nav>
 
           <section class="hs-main">
             <div class="hs-brand-row">
@@ -103,9 +103,9 @@
                         <i class="fa-solid fa-paperclip"></i>
                         Attach files
                       </button>
-                      <span class="hs-ai-attach-note">Up to 5 files. Local preview only.</span>
+                     
                     </div>
-                    <div class="hs-ai-file-list" id="aiFileList" aria-live="polite">No files attached.</div>
+                    
                   </div>
 
                   <button class="hs-ai-send" id="aiSend" type="button">Send</button>
@@ -271,7 +271,21 @@
         return "Thanks for your message. I am here to help with appointments, reports, or symptoms.";
       }
 
-      var API_BASE_URL = "http://localhost:5000";
+      function resolveApiBaseUrl() {
+        var params = new URLSearchParams(window.location.search);
+        var fromQuery = params.get("apiBase");
+        var fromStorage = window.localStorage ? window.localStorage.getItem("HS_API_BASE") : "";
+        var fromGlobal = window.HS_API_BASE;
+        var base = fromQuery || fromStorage || fromGlobal || "http://localhost:5000";
+
+        if (fromQuery && window.localStorage) {
+          window.localStorage.setItem("HS_API_BASE", fromQuery);
+        }
+
+        return base.replace(/\/+$/, "");
+      }
+
+      var API_BASE_URL = resolveApiBaseUrl();
 
       setTyping(false);
 
@@ -308,8 +322,18 @@
         })
           .then(function (response) {
             if (!response.ok) {
-              return response.json().then(function (data) {
-                var errorMessage = data && data.error ? data.error : "Request failed.";
+              return response.text().then(function (rawText) {
+                var errorMessage = "Request failed.";
+                try {
+                  var data = JSON.parse(rawText);
+                  if (data && data.error) {
+                    errorMessage = data.error;
+                  }
+                } catch (_err) {
+                  if (rawText) {
+                    errorMessage = rawText;
+                  }
+                }
                 throw new Error(errorMessage);
               });
             }
@@ -321,12 +345,20 @@
             voiceStatus.textContent = "Sent.";
           })
           .catch(function (err) {
-            appendBubble(
-              "Sorry, I couldn't reach the AI service. Please try again.",
-              "bot",
-              "HealthSphere AI"
-            );
-            voiceStatus.textContent = err.message || "Send failed.";
+            var rawMessage = err && err.message ? err.message : "";
+            var friendlyMessage = "Sorry, I couldn't reach the AI service. Please try again.";
+
+            if (rawMessage && /failed to fetch|networkerror|load failed|refused to connect/i.test(rawMessage)) {
+              friendlyMessage =
+                "I couldn't reach the backend at " +
+                API_BASE_URL +
+                ". Please make sure the patient backend is running.";
+            } else if (rawMessage) {
+              friendlyMessage = rawMessage;
+            }
+
+            appendBubble(friendlyMessage, "bot", "HealthSphere AI");
+            voiceStatus.textContent = rawMessage || "Send failed.";
           })
           .finally(function () {
             setTyping(false);
@@ -342,3 +374,4 @@
   </script>
 </body>
 </html>
+

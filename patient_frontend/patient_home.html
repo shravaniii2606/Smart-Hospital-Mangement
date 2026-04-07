@@ -36,12 +36,7 @@
             <a class="hs-side-link" href="emergency.html">
               <span><i class="fa-solid fa-truck-medical"></i></span>
               <small>Emergency</small>
-            </a>
-            <a class="hs-side-link" href="profile.html">
-              <span><i class="fa-regular fa-user"></i></span>
-              <small>Profile</small>
-            </a>
-            <a class="hs-side-link" href="reports.html">
+            </a><a class="hs-side-link" href="reports.html">
               <span><i class="fa-solid fa-file-medical"></i></span>
               <small>Reports</small>
             </a>
@@ -49,7 +44,12 @@
               <span><i class="fa-solid fa-prescription-bottle-medical"></i></span>
               <small>Prescriptions</small>
             </a>
-          </nav>
+          
+            <a class="hs-side-link" href="profile.html">
+              <span><i class="fa-regular fa-user"></i></span>
+              <small>Profile</small>
+            </a>
+            </nav>
 
           <section class="hs-main">
             <div class="hs-brand-row">
@@ -68,29 +68,20 @@
               </div>
             </header>
 
-            <div class="hs-duo">
-              <section id="homeLocationCard" class="hs-location-card">
-                <div class="hs-location-row">
-                  <div class="hs-location-icon"><i class="fa-solid fa-location-dot"></i></div>
-                  <div>
-                    <h4>Your Location</h4>
-                    <p id="homeLocationStatus">Allow location access to find nearby doctors.</p>
-                  </div>
+            <section class="hs-location-card">
+              <div class="hs-location-row">
+                <div class="hs-location-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div>
+                  <h4>Upcoming Appointments</h4>
+                  <p>Your next visits appear here.</p>
                 </div>
-                <button id="allowLocationBtn" class="btn btn-secondary" type="button">Allow Location Access</button>
-              </section>
-
-              <section class="hs-ai-card">
-                <div class="hs-ai-head">
-                  <i class="fa-solid fa-robot"></i>
-                  <div>
-                    <h3>AI Chatbox</h3>
-                    <p>Need quick health guidance?</p>
-                  </div>
-                </div>
-                <a class="btn" href="ai.html">Ask AI</a>
-              </section>
-            </div>
+              </div>
+              <div id="homeAppointmentsList" class="hs-recent-list" style="margin-top: 12px;"></div>
+              <div id="homeAppointmentsEmpty" class="hs-recent-empty" style="display: none;">
+                No upcoming appointments.
+              </div>
+              <a class="btn btn-secondary" href="appointments.html">View all appointments</a>
+            </section>
           </section>
         </div>
       </div>
@@ -102,5 +93,6 @@
   <script src="script.js"></script>
 </body>
 </html>
+
 
 
