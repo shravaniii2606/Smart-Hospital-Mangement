@@ -18,8 +18,6 @@ function normalizeStatus(value) {
   return String(value || "").trim().toLowerCase() === "booked" ? "booked" : "available";
 }
 
-<<<<<<< HEAD
-=======
 function normalizeRequestStatus(value) {
   const normalized = String(value || "").trim().toLowerCase();
   if (normalized === "approved" || normalized === "rejected") {
@@ -28,7 +26,6 @@ function normalizeRequestStatus(value) {
   return "pending";
 }
 
->>>>>>> 3a44a57e14b8d9d6dcd00350c2336a04326897ec
 function normalizeBedRecord(row) {
   return {
     id: row.id,
@@ -39,17 +36,6 @@ function normalizeBedRecord(row) {
   };
 }
 
-<<<<<<< HEAD
-function normalizeRequestStatus(value) {
-  const normalized = String(value || "").trim().toLowerCase();
-  if (normalized === "approved" || normalized === "rejected") {
-    return normalized;
-  }
-  return "pending";
-}
-
-=======
->>>>>>> 3a44a57e14b8d9d6dcd00350c2336a04326897ec
 function normalizeBedRequest(row) {
   return {
     id: row.id,
@@ -106,26 +92,6 @@ async function loadHospitalBeds() {
   return (data || []).map(normalizeBedRecord).sort(bedSort);
 }
 
-<<<<<<< HEAD
-async function findHospitalBed(client, ward, roomNumber, bedNumber) {
-  const { data, error } = await client
-    .from(HOSPITAL_BEDS_TABLE)
-    .select("id, ward, room_number, bed_number, status")
-    .eq("ward", normalizeWard(ward))
-    .eq("room_number", String(roomNumber || "").trim())
-    .eq("bed_number", String(bedNumber || "").trim())
-    .maybeSingle();
-
-  if (error) {
-    console.error("Error finding hospital bed:", error);
-    throw new Error(error.message || "Unable to find hospital bed.");
-  }
-
-  return data ? normalizeBedRecord(data) : null;
-}
-
-=======
->>>>>>> 3a44a57e14b8d9d6dcd00350c2336a04326897ec
 async function getHospitalBedById(id) {
   const client = getSupabaseClient();
   const { data, error } = await client
@@ -142,44 +108,6 @@ async function getHospitalBedById(id) {
   return data ? normalizeBedRecord(data) : null;
 }
 
-<<<<<<< HEAD
-async function createHospitalBed({ ward, roomNumber, bedNumber, status }) {
-  const client = getSupabaseClient();
-  const normalizedWard = normalizeWard(ward);
-  const normalizedRoom = String(roomNumber || "").trim();
-  const normalizedBed = String(bedNumber || "").trim();
-  const normalizedStatus = normalizeStatus(status);
-
-  if (!normalizedWard || !normalizedRoom || !normalizedBed) {
-    throw new Error("Ward, room number, and bed number are required.");
-  }
-
-  const existing = await findHospitalBed(client, normalizedWard, normalizedRoom, normalizedBed);
-  if (existing) {
-    throw new Error("This bed already exists for the selected ward and room.");
-  }
-
-  const { data, error } = await client
-    .from(HOSPITAL_BEDS_TABLE)
-    .insert({
-      ward: normalizedWard,
-      room_number: normalizedRoom,
-      bed_number: normalizedBed,
-      status: normalizedStatus
-    })
-    .select("id, ward, room_number, bed_number, status")
-    .single();
-
-  if (error) {
-    console.error("Error creating hospital bed:", error);
-    throw new Error(error.message || "Unable to create hospital bed.");
-  }
-
-  return normalizeBedRecord(data);
-}
-
-=======
->>>>>>> 3a44a57e14b8d9d6dcd00350c2336a04326897ec
 async function updateHospitalBedStatus(id, status) {
   const client = getSupabaseClient();
   const { data, error } = await client
@@ -351,33 +279,3 @@ async function approveBedBookingRequest(requestId) {
 
   return normalizeBedRequest(approvedData);
 }
-<<<<<<< HEAD
-
-async function seedHospitalBeds(defaultBeds) {
-  const currentBeds = await loadHospitalBeds();
-  if (currentBeds.length) {
-    return currentBeds;
-  }
-
-  const rowsToInsert = (defaultBeds || []).map((bed) => ({
-    ward: normalizeWard(bed.ward),
-    room_number: String(bed.roomNumber || "").trim(),
-    bed_number: String(bed.bedNumber || "").trim(),
-    status: normalizeStatus(bed.status)
-  })).filter((bed) => bed.ward && bed.room_number && bed.bed_number);
-
-  if (!rowsToInsert.length) {
-    return [];
-  }
-
-  const client = getSupabaseClient();
-  const { error } = await client.from(HOSPITAL_BEDS_TABLE).insert(rowsToInsert);
-  if (error) {
-    console.error("Error seeding hospital beds:", error);
-    throw new Error(error.message || "Unable to seed hospital beds.");
-  }
-
-  return loadHospitalBeds();
-}
-=======
->>>>>>> 3a44a57e14b8d9d6dcd00350c2336a04326897ec
