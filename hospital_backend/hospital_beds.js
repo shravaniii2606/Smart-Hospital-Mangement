@@ -32,6 +32,7 @@ function normalizeBedRecord(row) {
     ward: normalizeWard(row.ward),
     roomNumber: String(row.room_number || "").trim(),
     bedNumber: String(row.bed_number || "").trim(),
+    unit: "",
     status: normalizeStatus(row.status)
   };
 }
@@ -52,6 +53,13 @@ function normalizeBedRequest(row) {
 }
 
 function bedSort(left, right) {
+  const unitComparison = String(left.unit || "").localeCompare(String(right.unit || ""), undefined, {
+    sensitivity: "base"
+  });
+  if (unitComparison !== 0) {
+    return unitComparison;
+  }
+
   const wardComparison = left.ward.localeCompare(right.ward, undefined, { sensitivity: "base" });
   if (wardComparison !== 0) {
     return wardComparison;
@@ -69,6 +77,121 @@ function bedSort(left, right) {
     numeric: true,
     sensitivity: "base"
   });
+}
+
+function getPreferredUnit(row) {
+  const ward = normalizeWard(row.ward);
+  const roomLabel = String(row.room_number || "").trim().toLowerCase();
+
+  if (ward === "icu") {
+    if (roomLabel.includes("micu") || roomLabel.includes("medical")) {
+      return "micu";
+    }
+    if (roomLabel.includes("sicu") || roomLabel.includes("surgical")) {
+      return "sicu";
+    }
+    return "";
+  }
+
+  if (roomLabel.includes("private") || roomLabel.includes("delux") || roomLabel.includes("deluxe")) {
+    return "private-delux";
+  }
+  if (roomLabel.includes("general")) {
+    return "general-ward";
+  }
+  return "";
+}
+
+function assignDisplayNumbers(beds, startRoom, bedsPerRoom) {
+  const capacity = Array.isArray(bedsPerRoom) ? bedsPerRoom.slice() : [Number(bedsPerRoom) || 1];
+  const totalCapacity = capacity.reduce(function (sum, value) {
+    return sum + value;
+  }, 0);
+
+  return (beds || []).map(function (bed, index) {
+    let roomOffset = 0;
+    let bedOffset = index;
+
+    if (index >= totalCapacity && capacity.length) {
+      roomOffset = index % capacity.length;
+      bedOffset = capacity[roomOffset] + Math.floor((index - totalCapacity) / capacity.length);
+      return {
+        id: bed.id,
+        ward: bed.ward,
+        unit: bed.unit,
+        roomNumber: String(startRoom + roomOffset),
+        bedNumber: String(bedOffset + 1),
+        status: bed.status
+      };
+    }
+
+    while (roomOffset < capacity.length && bedOffset >= capacity[roomOffset]) {
+      bedOffset -= capacity[roomOffset];
+      roomOffset += 1;
+    }
+
+    return {
+      id: bed.id,
+      ward: bed.ward,
+      unit: bed.unit,
+      roomNumber: String(startRoom + roomOffset),
+      bedNumber: String(bedOffset + 1),
+      status: bed.status
+    };
+  });
+}
+
+function remapHospitalBeds(rows) {
+  const normalized = (rows || []).map(normalizeBedRecord);
+  const icuFallback = [];
+  const normalFallback = [];
+
+  normalized.forEach(function (bed, index) {
+    bed.unit = getPreferredUnit(rows[index]);
+    if (bed.unit) {
+      return;
+    }
+    if (bed.ward === "icu") {
+      icuFallback.push(bed);
+      return;
+    }
+    normalFallback.push(bed);
+  });
+
+  icuFallback
+    .slice()
+    .sort(bedSort)
+    .forEach(function (bed, index) {
+      bed.unit = index % 2 === 0 ? "micu" : "sicu";
+    });
+
+  normalFallback
+    .slice()
+    .sort(bedSort)
+    .forEach(function (bed, index) {
+      bed.unit = index % 2 === 0 ? "general-ward" : "private-delux";
+    });
+
+  const grouped = {
+    micu: [],
+    sicu: [],
+    "general-ward": [],
+    "private-delux": []
+  };
+
+  normalized.forEach(function (bed) {
+    if (grouped[bed.unit]) {
+      grouped[bed.unit].push(bed);
+    }
+  });
+
+  const remapped = []
+    .concat(assignDisplayNumbers(grouped.micu.sort(bedSort), 101, new Array(12).fill(1)))
+    .concat(assignDisplayNumbers(grouped.sicu.sort(bedSort), 201, new Array(12).fill(1)))
+    .concat(assignDisplayNumbers(grouped["general-ward"].sort(bedSort), 301, [5, 5, 5, 4]))
+    .concat(assignDisplayNumbers(grouped["private-delux"].sort(bedSort), 401, new Array(12).fill(1)));
+
+  return remapped.sort(bedSort);
 }
 
 async function loadHospitalBeds() {
@@ -89,32 +212,23 @@ async function loadHospitalBeds() {
     );
   }
 
-  return (data || []).map(normalizeBedRecord).sort(bedSort);
+  return remapHospitalBeds(data || []);
 }
 
 async function getHospitalBedById(id) {
-  const client = getSupabaseClient();
-  const { data, error } = await client
-    .from(HOSPITAL_BEDS_TABLE)
-    .select("id, ward, room_number, bed_number, status")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (error) {
-    console.error("Error loading hospital bed by id:", error);
-    throw new Error(error.message || "Unable to load hospital bed.");
-  }
-
-  return data ? normalizeBedRecord(data) : null;
+  const beds = await loadHospitalBeds();
+  return beds.find(function (bed) {
+    return String(bed.id) === String(id);
+  }) || null;
 }
 
 async function updateHospitalBedStatus(id, status) {
   const client = getSupabaseClient();
-  const { data, error } = await client
+  const { error } = await client
     .from(HOSPITAL_BEDS_TABLE)
     .update({ status: normalizeStatus(status) })
     .eq("id", id)
-    .select("id, ward, room_number, bed_number, status")
+    .select("id")
     .single();
 
   if (error) {
@@ -122,7 +236,7 @@ async function updateHospitalBedStatus(id, status) {
     throw new Error(error.message || "Unable to update bed status.");
   }
 
-  return normalizeBedRecord(data);
+  return getHospitalBedById(id);
 }
 
 async function loadBedBookingRequests(status) {
