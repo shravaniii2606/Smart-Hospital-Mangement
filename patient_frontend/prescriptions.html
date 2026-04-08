@@ -86,9 +86,14 @@
 
         emptyEl.style.display = "none";
         listEl.innerHTML = prescriptions.map(function (prescription) {
+          const icon = prescription.file_type && prescription.file_type.indexOf("image/") === 0 ? "fa-file-image" : "fa-file-pdf";
+          const action = prescription.file_data
+            ? `<a class="btn-mini btn-primary" href="${prescription.file_data}" target="_blank" rel="noopener noreferrer">View Attachment</a>`
+            : "";
+
           return `
             <div class="appt-doc-card">
-              <div class="doc-avatar"><i class="fa-solid fa-prescription-bottle-medical"></i></div>
+              <div class="doc-avatar"><i class="fa-solid ${prescription.file_data ? icon : "fa-prescription-bottle-medical"}"></i></div>
               <div class="doc-content">
                 <div class="appt-head-row">
                   <h3>${prescription.title || "Prescription"}</h3>
@@ -98,8 +103,10 @@
                 <div class="appt-detail-grid">
                   <small><strong>Doctor:</strong> ${prescription.doctor_name || "-"}</small>
                   <small><strong>Medicines:</strong> ${prescription.medicines || "-"}</small>
+                  <small><strong>Attachment:</strong> ${prescription.file_name || "No attachment"}</small>
                 </div>
               </div>
+              ${action}
             </div>
           `;
         }).join("");

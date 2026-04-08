@@ -44,6 +44,8 @@
     .status { min-height:20px; font-size:13px; }
     .status.error { color:var(--danger); }
     .status.success { color:var(--success); }
+    .meta { margin-top:8px; font-size:12px; color:var(--muted); }
+    .attachment-link { display:inline-flex; width:max-content; align-items:center; gap:8px; text-decoration:none; color:var(--blue); background:#eef4ff; border:1px solid #cfe0f7; border-radius:14px; padding:10px 14px; font-weight:700; }
     .back-link { display:inline-flex; margin-top:18px; text-decoration:none; color:var(--blue); background:#eef4ff; border:1px solid #cfe0f7; border-radius:16px; padding:14px 18px; font-weight:700; gap:10px; align-items:center; }
     @media (max-width:980px) { .dashboard { display:grid; } .sidebar-shell { width:100%; } .sidebar { grid-template-columns:repeat(3, minmax(0, 1fr)); } .page-grid { grid-template-columns:1fr; } }
     @media (max-width:720px) { .prescription-grid { grid-template-columns:1fr; } }
@@ -96,6 +98,11 @@
               <label for="prescriptionNotes">Notes</label>
               <textarea id="prescriptionNotes" placeholder="Add advice, duration, or follow-up notes."></textarea>
             </div>
+            <div class="field">
+              <label for="prescriptionFile">Attachment</label>
+              <input id="prescriptionFile" class="input" type="file" accept=".png,.jpg,.jpeg,.pdf,.webp,.gif" />
+              <p class="meta">Optional: upload prescription image or PDF. Max 5 MB.</p>
+            </div>
             <p id="prescriptionStatus" class="status" aria-live="polite"></p>
             <button id="prescriptionSubmit" class="upload-button" type="submit">Add Prescription</button>
           </form>
@@ -109,12 +116,23 @@
     (function () {
       const SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
       const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
+      const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
       function getSupabaseClient() {
         if (typeof supabase === "undefined" || !supabase.createClient) {
           return null;
         }
         return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+
+      function createUuid() {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") {
+          return window.crypto.randomUUID();
+        }
+        return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, function (char) {
+          const random = crypto.getRandomValues(new Uint8Array(1))[0];
+          return (Number(char) ^ (random & 15) >> (Number(char) / 4)).toString(16);
+        });
       }
 
       function normalizeEmail(value) {
@@ -125,6 +143,15 @@
         const statusEl = document.getElementById("prescriptionStatus");
         statusEl.textContent = message || "";
         statusEl.className = "status" + (type ? " " + type : "");
+      }
+
+      async function readFileAsDataUrl(file) {
+        return await new Promise(function (resolve, reject) {
+          const reader = new FileReader();
+          reader.onload = function () { resolve(reader.result); };
+          reader.onerror = function () { reject(new Error("file-read-failed")); };
+          reader.readAsDataURL(file);
+        });
       }
 
       function renderPrescriptions(prescriptions) {
@@ -139,6 +166,10 @@
 
         emptyEl.hidden = true;
         listEl.innerHTML = prescriptions.map(function (prescription) {
+          const attachmentLink = prescription.file_data
+            ? `<a class="attachment-link" href="${prescription.file_data}" download="${prescription.file_name || "prescription-attachment"}"><i class="fa-solid fa-paperclip"></i><span>${prescription.file_name || "Open attachment"}</span></a>`
+            : "";
+
           return `
             <article class="prescription-card">
               <div class="prescription-head">
@@ -158,6 +189,7 @@
                   <p>${prescription.medicines || "-"}</p>
                 </div>
               </div>
+              ${attachmentLink}
             </article>
           `;
         }).join("");
@@ -222,6 +254,7 @@
           const doctorName = document.getElementById("doctorName").value.trim();
           const medicines = document.getElementById("prescriptionMedicines").value.trim();
           const notes = document.getElementById("prescriptionNotes").value.trim();
+          const file = document.getElementById("prescriptionFile").files[0];
           const patientEmail = normalizeEmail(patient.email);
 
           if (!title || !doctorName || !medicines) {
@@ -234,19 +267,30 @@
             return;
           }
 
+          if (file && file.size > MAX_FILE_SIZE) {
+            setStatus("Please upload an attachment smaller than 5 MB.", "error");
+            return;
+          }
+
           submitEl.disabled = true;
           submitEl.textContent = "Saving...";
           setStatus("", "");
 
           try {
+            const fileData = file ? await readFileAsDataUrl(file) : null;
             const insertResult = await client
               .from("prescriptions")
               .insert({
+                id: createUuid(),
                 patient_email: patientEmail,
                 title: title,
                 doctor_name: doctorName,
                 medicines: medicines,
                 notes: notes,
+                file_name: file ? file.name : null,
+                file_type: file ? (file.type || null) : null,
+                file_data: fileData,
+                file_size: file ? file.size : null,
                 date: new Date().toISOString().slice(0, 10)
               })
               .select();
