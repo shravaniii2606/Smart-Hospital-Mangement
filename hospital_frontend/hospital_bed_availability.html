@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    :root { --navy:#0f2b63; --blue:#0b4ea2; --sky:#17a2b8; --text:#17233d; --muted:#5d6f8f; --line:#dce6f2; --soft:#f4f8fd; --success:#1f9d50; --danger:#cf4b4b; }
+    :root { --navy:#0f2b63; --blue:#0b4ea2; --sky:#17a2b8; --teal:#12808f; --green:#1f9d50; --gold:#c59023; --text:#17233d; --muted:#5d6f8f; --line:#dce6f2; --soft:#f4f8fd; --success:#1f9d50; --danger:#cf4b4b; }
     body { min-height:100vh; font-family:Poppins, Arial, sans-serif; background:radial-gradient(circle at top left, rgba(23,162,184,.15), transparent 22%), linear-gradient(180deg, #f7fbff 0%, #edf4fb 100%); color:var(--text); padding:24px; }
     .dashboard { max-width:1320px; margin:0 auto; display:flex; gap:18px; align-items:flex-start; min-height:calc(100vh - 48px); }
     .sidebar-shell { width:138px; flex:0 0 138px; background:linear-gradient(180deg, var(--navy), #14346b 56%, #0c204f); border-radius:26px; box-shadow:0 18px 42px rgba(15,43,99,.18); padding:16px 12px; }
@@ -22,36 +22,48 @@
     .brand-logo { width:38px; height:38px; border-radius:12px; background:linear-gradient(135deg, #2d75d7, #0f56b9); color:#fff; display:grid; place-items:center; }
     .brand-name { font-size:20px; font-weight:800; color:#1a2741; }
     .logout-link { display:inline-flex; align-items:center; gap:8px; text-decoration:none; color:#fff; background:linear-gradient(135deg, #c83b3b, #e35d5d); border-radius:14px; padding:12px 16px; font-size:14px; font-weight:700; }
-    .page-card, .ward-card { background:#fff; border:1px solid var(--line); border-radius:24px; padding:24px; box-shadow:0 14px 30px rgba(23,35,61,.06); }
+    .page-card, .detail-card { background:#fff; border:1px solid var(--line); border-radius:24px; padding:24px; box-shadow:0 14px 30px rgba(23,35,61,.06); }
     .toolbar { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:14px; }
     .page-card h1 { font-size:clamp(32px, 5vw, 48px); line-height:1.05; margin-bottom:10px; }
-    .page-card p, .requests-card p, .ward-header p { color:var(--muted); line-height:1.6; }
+    .page-card p, .detail-card p, .selection-card p, .summary-card p { color:var(--muted); line-height:1.6; }
     .filter-group { display:inline-flex; align-items:center; gap:10px; padding:12px 14px; border:1px solid var(--line); border-radius:16px; background:#fff; }
     .filter-group label { font-size:14px; font-weight:700; color:var(--muted); }
     .filter-group select { border:1px solid var(--line); border-radius:12px; padding:10px 12px; font:inherit; color:var(--text); background:#fff; }
     .status-banner { border-radius:18px; padding:14px 16px; font-size:14px; font-weight:600; border:1px solid var(--line); background:#f8fbff; color:var(--muted); }
     .status-banner.success { background:#effaf3; border-color:#ccebd8; color:#1d6f3d; }
     .status-banner.error { background:#fff2f2; border-color:#f0cccc; color:#a53c3c; }
-    .ward-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:18px; }
-    .ward-header { display:flex; align-items:center; gap:14px; margin-bottom:18px; }
-    .ward-icon { width:54px; height:54px; border-radius:18px; display:grid; place-items:center; color:#fff; font-size:22px; }
-    .ward-card.icu .ward-icon { background:linear-gradient(135deg, #0f56b9, #17a2b8); }
-    .ward-card.normal .ward-icon { background:linear-gradient(135deg, #1f9d50, #52b77d); }
-    .ward-header h2 { font-size:24px; margin-bottom:4px; }
-    .bed-list { display:grid; gap:14px; }
-    .bed-row { border:1px solid var(--line); border-radius:18px; background:var(--soft); padding:16px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-    .bed-label { font-size:16px; font-weight:700; color:var(--text); }
-    .status-options { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
-    .status-option { display:inline-flex; align-items:center; gap:8px; border-radius:999px; padding:8px 12px; background:#fff; border:1px solid var(--line); font-size:14px; font-weight:600; color:var(--text); }
-    .status-option.booked { color:var(--danger); }
-    .status-option.available { color:var(--success); }
-    .status-option input { accent-color:currentColor; }
-    .update-bed-btn { border:none; border-radius:12px; padding:10px 16px; font:inherit; font-weight:700; color:#fff; cursor:pointer; }
-    .update-bed-btn { background:linear-gradient(135deg, #0f56b9, #17a2b8); }
-    .update-bed-btn:disabled { cursor:wait; opacity:.7; }
+    .path-bar { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .path-text { font-size:15px; font-weight:700; color:var(--text); }
+    .path-text span { color:var(--muted); font-weight:600; }
+    .back-btn { border:none; border-radius:14px; padding:11px 16px; font:inherit; font-weight:700; color:var(--blue); background:#edf4ff; cursor:pointer; }
+    .back-btn[hidden] { display:none; }
+    .selection-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:18px; }
+    .selection-card { text-align:left; border-radius:24px; padding:24px; background:#fff; border:1px solid var(--line); box-shadow:0 14px 30px rgba(23,35,61,.06); cursor:pointer; transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease; text-decoration:none; color:inherit; display:block; }
+    .selection-card:hover, .selection-card:focus-visible { transform:translateY(-3px); box-shadow:0 18px 36px rgba(23,35,61,.1); border-color:#bfd4ec; outline:none; }
+    .selection-card .card-icon { width:58px; height:58px; border-radius:20px; display:grid; place-items:center; color:#fff; font-size:24px; margin-bottom:18px; }
+    .selection-card h2 { font-size:28px; margin-bottom:8px; }
+    .selection-card h3 { font-size:24px; margin-bottom:8px; }
+    .selection-card strong { display:inline-block; margin-top:14px; color:var(--blue); font-size:14px; }
+    .selection-card.icu .card-icon { background:linear-gradient(135deg, #0f56b9, #17a2b8); }
+    .selection-card.rooms .card-icon { background:linear-gradient(135deg, #1f9d50, #52b77d); }
+    .selection-card.micu .card-icon { background:linear-gradient(135deg, #0f56b9, #6ec5ff); }
+    .selection-card.sicu .card-icon { background:linear-gradient(135deg, #14468a, #17a2b8); }
+    .selection-card.general-ward .card-icon { background:linear-gradient(135deg, #2f8f4d, #78c67f); }
+    .selection-card.private-delux .card-icon { background:linear-gradient(135deg, #b68217, #e8bd59); }
     .empty-list { border:1px dashed #c8d8eb; border-radius:18px; padding:20px; color:var(--muted); background:#fbfdff; text-align:center; }
-    @media (max-width:980px) { .dashboard { display:grid; } .sidebar-shell { width:100%; } .sidebar { grid-template-columns:repeat(3, minmax(0, 1fr)); } .ward-grid { grid-template-columns:1fr; } }
-    @media (max-width:640px) { body { padding:12px; } .sidebar { grid-template-columns:repeat(2, minmax(0, 1fr)); } .page-card, .requests-card, .ward-card { padding:18px; } }
+    [hidden] { display:none !important; }
+    @media (max-width:980px) {
+      .dashboard { display:grid; }
+      .sidebar-shell { width:100%; }
+      .sidebar { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+      .selection-grid { grid-template-columns:1fr; }
+    }
+    @media (max-width:640px) {
+      body { padding:12px; }
+      .sidebar { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+      .page-card, .detail-card, .selection-card { padding:18px; }
+      .selection-card h2, .selection-card h3 { font-size:22px; }
+    }
   </style>
 </head>
 <body>
@@ -75,10 +87,12 @@
         </div>
         <a class="logout-link" href="../patient_frontend/signup.html"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a>
       </div>
+
       <section class="page-card">
         <div class="toolbar">
           <div>
             <h1>Bed Availability</h1>
+            <p>Open ICU or Rooms, then drill down into the exact unit to see available and booked rooms.</p>
           </div>
           <div class="filter-group">
             <label for="statusFilter">Filter</label>
@@ -90,25 +104,91 @@
           </div>
         </div>
       </section>
+
       <div id="statusBanner" class="status-banner">Connecting to live bed availability data...</div>
-      <section class="ward-grid">
-        <article class="ward-card icu">
-          <div class="ward-header"><div class="ward-icon"><i class="fa-solid fa-heart-circle-bolt"></i></div><div><h2>ICU</h2><p>Critical care room and bed allocation.</p></div></div>
-          <div class="bed-list" data-bed-list="icu"></div>
-        </article>
-        <article class="ward-card normal">
-          <div class="ward-header"><div class="ward-icon"><i class="fa-solid fa-bed-pulse"></i></div><div><h2>Normal</h2><p>General ward room and bed allocation.</p></div></div>
-          <div class="bed-list" data-bed-list="normal"></div>
-        </article>
+
+      <section class="detail-card">
+        <div class="path-bar">
+          <div id="pathText" class="path-text">Level: <span>Bed Availability</span></div>
+          <button id="backButton" class="back-btn" type="button" hidden><i class="fa-solid fa-arrow-left"></i> Back</button>
+        </div>
       </section>
+
+      <section id="primaryView" class="selection-grid" aria-label="Primary bed sections">
+        <button class="selection-card icu" type="button" data-category="icu">
+          <div class="card-icon"><i class="fa-solid fa-heart-circle-bolt"></i></div>
+          <h2>ICU</h2>
+          <p>Open ICU units and check room availability inside medical or surgical intensive care.</p>
+          <strong>View ICU units</strong>
+        </button>
+        <button class="selection-card rooms" type="button" data-category="rooms">
+          <div class="card-icon"><i class="fa-solid fa-bed-pulse"></i></div>
+          <h2>Rooms</h2>
+          <p>Open room sections and review general ward or private/delux room occupancy.</p>
+          <strong>View room sections</strong>
+        </button>
+      </section>
+
+      <section id="secondaryView" class="selection-grid" aria-label="Bed sub sections" hidden></section>
+
     </section>
   </main>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../hospital_backend/hospital_beds.js"></script>
   <script>
     const statusBanner = document.getElementById("statusBanner");
     const statusFilter = document.getElementById("statusFilter");
+    const primaryView = document.getElementById("primaryView");
+    const secondaryView = document.getElementById("secondaryView");
+    const pathText = document.getElementById("pathText");
+    const backButton = document.getElementById("backButton");
+    const searchParams = new URLSearchParams(window.location.search);
+    const initialCategory = searchParams.get("category") || "";
+    const initialFilter = searchParams.get("filter") || "all";
+
     let allBeds = [];
+    let currentLevel = "primary";
+    let activeCategory = "";
+    const CATEGORY_CONFIG = {
+      icu: {
+        title: "ICU",
+        description: "Choose the ICU unit you want to inspect.",
+        units: ["micu", "sicu"]
+      },
+      rooms: {
+        title: "Rooms",
+        description: "Choose the room section you want to inspect.",
+        units: ["general-ward", "private-delux"]
+      }
+    };
+
+    const UNIT_CONFIG = {
+      micu: {
+        title: "MICU",
+        description: "Medical ICU room availability and bed status.",
+        icon: "fa-solid fa-stethoscope",
+        category: "icu"
+      },
+      sicu: {
+        title: "SICU",
+        description: "Surgical ICU room availability and bed status.",
+        icon: "fa-solid fa-user-doctor",
+        category: "icu"
+      },
+      "general-ward": {
+        title: "General Ward",
+        description: "General ward room availability and occupancy.",
+        icon: "fa-solid fa-bed-pulse",
+        category: "rooms"
+      },
+      "private-delux": {
+        title: "Private / Delux Rooms",
+        description: "Private and delux room availability and occupancy.",
+        icon: "fa-solid fa-hotel",
+        category: "rooms"
+      }
+    };
 
     function setStatus(message, tone) {
       statusBanner.textContent = message;
@@ -116,7 +196,7 @@
     }
 
     function parseSortValue(value) {
-      const trimmed = value.trim();
+      const trimmed = String(value || "").trim();
       const numericValue = Number(trimmed);
       if (!Number.isNaN(numericValue) && trimmed !== "") {
         return { type: "number", value: numericValue };
@@ -131,69 +211,62 @@
       return String(left.value).localeCompare(String(right.value), undefined, { numeric: true, sensitivity: "base" });
     }
 
-    function sortBedList(bedList) {
-      const rows = Array.from(bedList.querySelectorAll(".bed-row"));
-      rows.sort((firstRow, secondRow) => {
-        const firstRoom = parseSortValue(firstRow.dataset.roomNumber || "");
-        const secondRoom = parseSortValue(secondRow.dataset.roomNumber || "");
-        const roomComparison = compareSortValues(firstRoom, secondRoom);
-        if (roomComparison !== 0) {
-          return roomComparison;
-        }
-        const firstBed = parseSortValue(firstRow.dataset.bedNumber || "");
-        const secondBed = parseSortValue(secondRow.dataset.bedNumber || "");
-        return compareSortValues(firstBed, secondBed);
-      });
-      rows.forEach((row) => bedList.appendChild(row));
+    function sortRooms(left, right) {
+      return compareSortValues(parseSortValue(left), parseSortValue(right));
     }
 
-    function buildBedRow(ward, roomNumber, bedNumber, status, id) {
-      const safeWard = ward.toLowerCase();
-      const safeRoom = roomNumber.trim().replace(/\s+/g, "-");
-      const safeBed = bedNumber.trim().replace(/\s+/g, "-");
-      const radioName = safeWard + "-room-" + safeRoom + "-bed-" + safeBed;
-      const selectedStatus = status === "booked" ? "booked" : "available";
-      const row = document.createElement("div");
-      row.className = "bed-row";
-      row.dataset.id = id || "";
-      row.dataset.ward = safeWard;
-      row.dataset.roomNumber = roomNumber.trim();
-      row.dataset.bedNumber = bedNumber.trim();
-      row.innerHTML = `
-        <div class="bed-label">Room ${roomNumber} - Bed ${bedNumber}</div>
-        <div class="status-options">
-          <label class="status-option booked"><input type="radio" name="${radioName}" value="booked" ${selectedStatus === "booked" ? "checked" : ""} /><span>Booked</span></label>
-          <label class="status-option available"><input type="radio" name="${radioName}" value="available" ${selectedStatus === "available" ? "checked" : ""} /><span>Available</span></label>
-        </div>
-        <button class="update-bed-btn" type="button">Update</button>
-      `;
-      return row;
-    }
+    function buildUnitAssignments(beds) {
+      const assignments = {};
+      const icuRooms = {};
+      const normalRooms = {};
 
-    function groupBedsByWard(beds) {
-      return (beds || []).reduce((state, bed) => {
-        if (!state[bed.ward]) {
-          state[bed.ward] = [];
-        }
-        state[bed.ward].push(bed);
-        return state;
-      }, {});
-    }
+      (beds || []).forEach((bed) => {
+        const roomNumber = String(bed.roomNumber || "").trim();
+        const roomLabel = roomNumber.toLowerCase();
+        const ward = String(bed.ward || "").trim().toLowerCase();
+        const explicitUnit = String(bed.unit || "").trim().toLowerCase();
 
-    function renderBeds(state) {
-      document.querySelectorAll("[data-bed-list]").forEach((bedList) => {
-        const ward = bedList.dataset.bedList;
-        const beds = Array.isArray(state[ward]) ? state[ward] : [];
-        bedList.innerHTML = "";
-        if (!beds.length) {
-          bedList.innerHTML = '<div class="empty-list">No beds match this filter in this ward.</div>';
+        if (explicitUnit) {
+          assignments[roomNumber] = explicitUnit;
           return;
         }
-        beds.forEach((bed) => {
-          bedList.appendChild(buildBedRow(ward, bed.roomNumber, bed.bedNumber, bed.status, bed.id));
-        });
-        sortBedList(bedList);
+
+        if (ward === "icu") {
+          if (roomLabel.includes("micu") || roomLabel.includes("medical")) {
+            assignments[roomNumber] = "micu";
+          } else if (roomLabel.includes("sicu") || roomLabel.includes("surgical")) {
+            assignments[roomNumber] = "sicu";
+          } else {
+            icuRooms[roomNumber] = true;
+          }
+          return;
+        }
+
+        if (roomLabel.includes("private") || roomLabel.includes("delux") || roomLabel.includes("deluxe")) {
+          assignments[roomNumber] = "private-delux";
+        } else if (roomLabel.includes("general")) {
+          assignments[roomNumber] = "general-ward";
+        } else {
+          normalRooms[roomNumber] = true;
+        }
       });
+
+      const icuFallbackRooms = Object.keys(icuRooms).filter((room) => !assignments[room]).sort(sortRooms);
+      icuFallbackRooms.forEach((roomNumber, index) => {
+        assignments[roomNumber] = index % 2 === 0 ? "micu" : "sicu";
+      });
+
+      const normalFallbackRooms = Object.keys(normalRooms).filter((room) => !assignments[room]).sort(sortRooms);
+      normalFallbackRooms.forEach((roomNumber, index) => {
+        assignments[roomNumber] = index % 2 === 0 ? "general-ward" : "private-delux";
+      });
+
+      return assignments;
+    }
+
+    function getUnitForBed(bed, roomAssignments) {
+      const roomNumber = String(bed.roomNumber || "").trim();
+      return roomAssignments[roomNumber] || "";
     }
 
     function getFilteredBeds() {
@@ -203,46 +276,133 @@
       return allBeds.filter((bed) => bed.status === statusFilter.value);
     }
 
-    function refreshVisibleBeds() {
-      renderBeds(groupBedsByWard(getFilteredBeds()));
+    function getBedsForCategory(category, beds, roomAssignments) {
+      return (beds || []).filter((bed) => {
+        const ward = String(bed.ward || "").trim().toLowerCase();
+        const unit = getUnitForBed(bed, roomAssignments);
+        if (category === "icu") {
+          return ward === "icu" && (unit === "micu" || unit === "sicu");
+        }
+        return ward !== "icu" && (unit === "general-ward" || unit === "private-delux");
+      });
     }
 
-    document.querySelectorAll("[data-bed-list]").forEach((bedList) => {
-      bedList.addEventListener("click", async (event) => {
-        if (!event.target.matches(".update-bed-btn")) {
-          return;
+    function groupBedsByRoom(beds) {
+      const grouped = {};
+      (beds || []).forEach((bed) => {
+        const roomNumber = String(bed.roomNumber || "").trim() || "Unassigned";
+        if (!grouped[roomNumber]) {
+          grouped[roomNumber] = [];
         }
-        const row = event.target.closest(".bed-row");
-        const bedId = row ? row.dataset.id : "";
-        const checkedInput = row ? row.querySelector('input[type="radio"]:checked') : null;
-        if (!bedId || !checkedInput) {
-          setStatus("This bed row is missing the information needed to update.", "error");
-          return;
-        }
-        event.target.disabled = true;
-        try {
-          const updatedBed = await updateHospitalBedStatus(bedId, checkedInput.value);
-          allBeds = allBeds.map((bed) => bed.id === updatedBed.id ? updatedBed : bed);
-          refreshVisibleBeds();
-          setStatus("Updated " + updatedBed.ward.toUpperCase() + " room " + updatedBed.roomNumber + " bed " + updatedBed.bedNumber + " to " + updatedBed.status + ".", "success");
-        } catch (error) {
-          console.error("Error updating bed status:", error);
-          event.target.disabled = false;
-          setStatus(error.message || "Unable to update bed status.", "error");
-        }
+        grouped[roomNumber].push(bed);
       });
+      return grouped;
+    }
+
+    function updatePath() {
+      let text = "Level: <span>Bed Availability</span>";
+      if (currentLevel === "secondary" && activeCategory) {
+        text = "Level: <span>Bed Availability / " + CATEGORY_CONFIG[activeCategory].title + "</span>";
+      }
+      pathText.innerHTML = text;
+      backButton.hidden = currentLevel === "primary";
+    }
+
+    function renderPrimaryView() {
+      currentLevel = "primary";
+      activeCategory = "";
+      primaryView.hidden = false;
+      secondaryView.hidden = true;
+      const params = new URLSearchParams(window.location.search);
+      params.delete("category");
+      params.set("filter", statusFilter.value);
+      window.history.replaceState({}, "", window.location.pathname + "?" + params.toString());
+      updatePath();
+    }
+
+    function renderSecondaryView(category, filteredBeds, roomAssignments) {
+      currentLevel = "secondary";
+      activeCategory = category;
+      primaryView.hidden = true;
+      secondaryView.hidden = false;
+      const params = new URLSearchParams(window.location.search);
+      params.set("category", category);
+      params.set("filter", statusFilter.value);
+      window.history.replaceState({}, "", window.location.pathname + "?" + params.toString());
+      updatePath();
+
+      const config = CATEGORY_CONFIG[category];
+      const categoryBeds = getBedsForCategory(category, filteredBeds, roomAssignments);
+
+      secondaryView.innerHTML = config.units.map((unitKey) => {
+        const unitBeds = categoryBeds.filter((bed) => getUnitForBed(bed, roomAssignments) === unitKey);
+        const availableCount = unitBeds.filter((bed) => bed.status === "available").length;
+        const bookedCount = unitBeds.filter((bed) => bed.status === "booked").length;
+        const roomCount = Object.keys(groupBedsByRoom(unitBeds)).length;
+        const unit = UNIT_CONFIG[unitKey];
+
+        return `
+          <a class="selection-card ${unitKey}" href="hospital_bed_unit.html?category=${encodeURIComponent(category)}&unit=${encodeURIComponent(unitKey)}&filter=${encodeURIComponent(statusFilter.value)}">
+            <div class="card-icon"><i class="${unit.icon}"></i></div>
+            <h3>${unit.title}</h3>
+            <p>${unit.description}</p>
+            <p>${roomCount} rooms | ${availableCount} available | ${bookedCount} booked</p>
+            <strong>Open ${unit.title}</strong>
+          </a>
+        `;
+      }).join("");
+    }
+
+    function refreshView() {
+      const filteredBeds = getFilteredBeds();
+      const roomAssignments = buildUnitAssignments(filteredBeds);
+
+      if (currentLevel === "primary") {
+        renderPrimaryView();
+        return;
+      }
+
+      if (currentLevel === "secondary") {
+        renderSecondaryView(activeCategory, filteredBeds, roomAssignments);
+        return;
+      }
+    }
+
+    primaryView.addEventListener("click", (event) => {
+      const categoryButton = event.target.closest("[data-category]");
+      if (!categoryButton) {
+        return;
+      }
+      renderSecondaryView(categoryButton.getAttribute("data-category"), getFilteredBeds(), buildUnitAssignments(getFilteredBeds()));
+    });
+
+    backButton.addEventListener("click", () => {
+      renderPrimaryView();
     });
 
     statusFilter.addEventListener("change", () => {
-      refreshVisibleBeds();
+      const params = new URLSearchParams(window.location.search);
+      params.set("filter", statusFilter.value);
+      if (currentLevel === "secondary" && activeCategory) {
+        params.set("category", activeCategory);
+      } else {
+        params.delete("category");
+      }
+      window.history.replaceState({}, "", window.location.pathname + "?" + params.toString());
+      refreshView();
       setStatus(statusFilter.value === "all" ? "Showing all beds." : "Showing only " + statusFilter.value + " beds.", "success");
     });
 
     async function initBeds() {
+      statusFilter.value = ["all", "available", "booked"].includes(initialFilter) ? initialFilter : "all";
       try {
         allBeds = await loadHospitalBeds();
-        refreshVisibleBeds();
-        setStatus("", "");
+        if (CATEGORY_CONFIG[initialCategory]) {
+          renderSecondaryView(initialCategory, getFilteredBeds(), buildUnitAssignments(getFilteredBeds()));
+        } else {
+          renderPrimaryView();
+        }
+        setStatus("Choose ICU or Rooms to check live hospital bed availability.", "success");
       } catch (error) {
         console.error("Error loading hospital beds:", error);
         setStatus((error.message || "Unable to connect to hospital bed data.") + " Make sure the table 'hospital_beds' exists.", "error");
