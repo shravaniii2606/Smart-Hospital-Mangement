@@ -309,6 +309,37 @@
     emptyEl.style.display = "none";
   }
 
+  function renderHomeBedBooking(booking) {
+    var cardEl = document.getElementById("homeBedBookingCard");
+    var emptyEl = document.getElementById("homeBedBookingEmpty");
+    var titleEl = document.getElementById("homeBedBookingTitle");
+    var metaEl = document.getElementById("homeBedBookingMeta");
+    var wardEl = document.getElementById("homeBedBookingWard");
+    var viewBillBtn = document.getElementById("homeBedBookingViewBill");
+
+    if (!cardEl || !emptyEl || !titleEl || !metaEl || !wardEl) {
+      return;
+    }
+
+    if (!booking) {
+      cardEl.style.display = "none";
+      emptyEl.style.display = "block";
+      return;
+    }
+
+    var ward = String(booking.ward || "").toLowerCase();
+    var wardLabel = ward === "icu" ? "ICU ward" : "General ward";
+    titleEl.textContent = "City Hospital";
+    metaEl.textContent = "Room " + (booking.room_number || "-") + " - Bed " + (booking.bed_number || "-");
+    wardEl.textContent = wardLabel;
+    cardEl.style.display = "flex";
+    emptyEl.style.display = "none";
+
+    if (viewBillBtn) {
+      viewBillBtn.style.display = "inline-flex";
+    }
+  }
+
   async function findLatestBedRecommendation(client, emails) {
     var uniqueEmails = Array.from(
       new Set(
@@ -370,6 +401,70 @@
     ]);
 
     renderHomeBedRecommendation(recommendation);
+  }
+
+  async function loadHomeBedBooking(client) {
+    if (!client) {
+      renderHomeBedBooking(null);
+      return;
+    }
+
+    var userResult = await client.auth.getUser();
+    if (userResult.error || !userResult.data || !userResult.data.user) {
+      renderHomeBedBooking(null);
+      return;
+    }
+
+    var result = await client
+      .from("hospital_bed_requests")
+      .select("ward, room_number, bed_number, status, created_at")
+      .eq("patient_user_id", userResult.data.user.id)
+      .eq("status", "approved")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (result.error) {
+      renderHomeBedBooking(null);
+      return;
+    }
+
+    renderHomeBedBooking(result.data || null);
+  }
+
+  function openStoredInvoice() {
+    var stored = null;
+    try {
+      stored = JSON.parse(localStorage.getItem("latestBedInvoice") || "null");
+    } catch (error) {
+      stored = null;
+    }
+    if (!stored) {
+      return;
+    }
+    var bed = stored.bed || {};
+    var wardLabel = bed.ward === "icu" ? "ICU" : "General";
+    var typeLabel = stored.type === "premium" ? "Premium" : "Normal";
+    var bedInfo = bed.roomNumber ? ("Room " + bed.roomNumber + " - Bed " + bed.bedNumber) : "Bed not selected";
+    var patientName = stored.patient ? stored.patient.name : "Patient";
+    var patientEmail = stored.patient ? stored.patient.email : "-";
+    var html =
+      "<html><head><title>Bed Invoice</title></head><body style=\"font-family: Arial, sans-serif; padding: 24px;\">" +
+      "<h2>HealthSphere - Bed Invoice</h2>" +
+      "<p><strong>Patient:</strong> " + patientName + " (" + patientEmail + ")</p>" +
+      "<p><strong>Hospital:</strong> City Hospital</p>" +
+      "<p><strong>Bed:</strong> " + bedInfo + " (" + wardLabel + " ward, " + typeLabel + ")</p>" +
+      "<hr />" +
+      "<p><strong>Days:</strong> " + (stored.days || 1) + "</p>" +
+      "<p><strong>Base Rate:</strong> INR " + Number(stored.base || 0).toLocaleString("en-IN") + "</p>" +
+      "<p><strong>Service Charge:</strong> INR " + Number(stored.service || 0).toLocaleString("en-IN") + "</p>" +
+      "<p><strong>Total:</strong> INR " + Number(stored.total || 0).toLocaleString("en-IN") + "</p>" +
+      "</body></html>";
+    var preview = window.open("", "_blank");
+    if (preview) {
+      preview.document.write(html);
+      preview.document.close();
+    }
   }
 
   async function loadHomeAppointments(client) {
@@ -473,6 +568,7 @@
 
     hydrateHomeName(client);
     loadHomeBedRecommendation(client);
+    loadHomeBedBooking(client);
     loadHomeAppointments(client);
     hydrateProfile(client);
     bindDobBounds("signupDob");
@@ -485,6 +581,13 @@
       logoutBtn.addEventListener("click", async function () {
         await client.auth.signOut();
         window.location.href = "login.html";
+      });
+    }
+
+    var homeBillBtn = document.getElementById("homeBedBookingViewBill");
+    if (homeBillBtn) {
+      homeBillBtn.addEventListener("click", function () {
+        openStoredInvoice();
       });
     }
 

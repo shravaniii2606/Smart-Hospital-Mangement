@@ -409,7 +409,34 @@
       }
     }
 
+    function subscribeToBedUpdates() {
+      if (typeof supabase === "undefined" || !supabase.createClient) {
+        return;
+      }
+      const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      if (bedsChannel) {
+        client.removeChannel(bedsChannel);
+      }
+      bedsChannel = client
+        .channel("hospital-beds-live")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "hospital_beds" },
+          async () => {
+            try {
+              allBeds = await loadHospitalBeds();
+              refreshVisibleBeds();
+              setStatus("Live bed status updated.", "success");
+            } catch (_error) {
+            }
+          }
+        )
+        .subscribe();
+    }
+
     initBeds();
+    subscribeToBedUpdates();
+    window.setInterval(initBeds, 15000);
   </script>
 </body>
 </html>
