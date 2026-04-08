@@ -70,6 +70,26 @@
 
             <section class="hs-location-card">
               <div class="hs-location-row">
+                <div class="hs-location-icon"><i class="fa-solid fa-bed-pulse"></i></div>
+                <div>
+                  <h4>Bed Recommendation</h4>
+                  <p>If your doctor recommends advance bed booking, it will appear here.</p>
+                </div>
+              </div>
+              <div id="bedRecommendationCard" class="hs-recent-item" style="display: none; margin-top: 12px; align-items: flex-start; gap: 16px;">
+                <div>
+                  <strong id="bedRecommendationTitle">Bed booking recommended</strong>
+                  <span id="bedRecommendationMessage">Your doctor has recommended booking a bed in advance.</span>
+                </div>
+                <a id="bedRecommendationAction" class="btn btn-primary" href="bed_availability.html?recommended=1">Book Bed</a>
+              </div>
+              <div id="bedRecommendationEmpty" class="hs-recent-empty" style="display: none; margin-top: 12px;">
+                No doctor bed recommendation right now.
+              </div>
+            </section>
+
+            <section class="hs-location-card">
+              <div class="hs-location-row">
                 <div class="hs-location-icon"><i class="fa-solid fa-calendar-check"></i></div>
                 <div>
                   <h4>Upcoming Appointments</h4>

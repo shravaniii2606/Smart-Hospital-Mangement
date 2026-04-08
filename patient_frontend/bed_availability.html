@@ -115,10 +115,53 @@
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    const SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
     const bedStatusText = document.getElementById("bedStatusText");
-    if (bedStatusText) {
-      bedStatusText.textContent = "Showing currently available hospital information.";
+
+    function getSupabaseClient() {
+      if (typeof supabase === "undefined" || !supabase.createClient) {
+        return null;
+      }
+      return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
+
+    async function hydrateBedStatusText() {
+      if (!bedStatusText) {
+        return;
+      }
+
+      const client = getSupabaseClient();
+      if (!client) {
+        bedStatusText.textContent = "Showing currently available hospital information.";
+        return;
+      }
+
+      const userResult = await client.auth.getUser();
+      if (userResult.error || !userResult.data || !userResult.data.user) {
+        bedStatusText.textContent = "Showing currently available hospital information.";
+        return;
+      }
+
+      const patientEmail = String(userResult.data.user.email || "").trim().toLowerCase();
+      const prescriptionResult = await client
+        .from("prescriptions")
+        .select("doctor_name, bed_required")
+        .ilike("patient_email", patientEmail)
+        .eq("bed_required", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (prescriptionResult.error || !prescriptionResult.data) {
+        bedStatusText.textContent = "Showing currently available hospital information. Booking is enabled only for patients with a doctor recommendation.";
+        return;
+      }
+
+      bedStatusText.textContent = (prescriptionResult.data.doctor_name || "Your doctor") + " recommended advance bed booking. Open a hospital to request an available bed.";
+    }
+
+    hydrateBedStatusText();
   </script>
 </body>
 </html>

@@ -285,6 +285,93 @@
       .join("");
   }
 
+  function renderHomeBedRecommendation(recommendation) {
+    var cardEl = document.getElementById("bedRecommendationCard");
+    var emptyEl = document.getElementById("bedRecommendationEmpty");
+    var titleEl = document.getElementById("bedRecommendationTitle");
+    var messageEl = document.getElementById("bedRecommendationMessage");
+
+    if (!cardEl || !emptyEl || !titleEl || !messageEl) {
+      return;
+    }
+
+    if (!recommendation) {
+      cardEl.style.display = "none";
+      emptyEl.style.display = "block";
+      return;
+    }
+
+    titleEl.textContent = "Bed booking recommended";
+    messageEl.textContent =
+      (recommendation.doctor_name || "Your doctor") +
+      " has recommended you to book your bed in advance.";
+    cardEl.style.display = "flex";
+    emptyEl.style.display = "none";
+  }
+
+  async function findLatestBedRecommendation(client, emails) {
+    var uniqueEmails = Array.from(
+      new Set(
+        (emails || [])
+          .map(function (email) {
+            return String(email || "").trim().toLowerCase();
+          })
+          .filter(Boolean)
+      )
+    );
+
+    if (!uniqueEmails.length) {
+      return null;
+    }
+
+    var result = await client
+      .from("prescriptions")
+      .select("doctor_name, created_at, date, bed_required, patient_email")
+      .in("patient_email", uniqueEmails)
+      .eq("bed_required", true)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (result.error) {
+      return null;
+    }
+
+    return result.data || null;
+  }
+
+  async function loadHomeBedRecommendation(client) {
+    if (!client) {
+      renderHomeBedRecommendation(null);
+      return;
+    }
+
+    var userResult = await client.auth.getUser();
+    if (userResult.error || !userResult.data || !userResult.data.user) {
+      renderHomeBedRecommendation(null);
+      return;
+    }
+
+    var patientEmail = String(userResult.data.user.email || "").trim().toLowerCase();
+    if (!patientEmail) {
+      renderHomeBedRecommendation(null);
+      return;
+    }
+
+    var profileResult = await client
+      .from("patient_profile")
+      .select("email")
+      .eq("user_id", userResult.data.user.id)
+      .maybeSingle();
+
+    var recommendation = await findLatestBedRecommendation(client, [
+      patientEmail,
+      profileResult && profileResult.data ? profileResult.data.email : ""
+    ]);
+
+    renderHomeBedRecommendation(recommendation);
+  }
+
   async function loadHomeAppointments(client) {
     var listEl = document.getElementById("homeAppointmentsList");
     var emptyEl = document.getElementById("homeAppointmentsEmpty");
@@ -385,6 +472,7 @@
     var client = getSupabaseClient();
 
     hydrateHomeName(client);
+    loadHomeBedRecommendation(client);
     loadHomeAppointments(client);
     hydrateProfile(client);
     bindDobBounds("signupDob");
