@@ -41,6 +41,9 @@
     .bed-list { display:grid; gap:14px; }
     .bed-row { border:1px solid var(--line); border-radius:18px; background:var(--soft); padding:16px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
     .bed-label { font-size:16px; font-weight:700; color:var(--text); }
+    .bed-tag { display:inline-flex; align-items:center; padding:6px 12px; border-radius:999px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; border:1px solid transparent; }
+    .bed-tag.premium { background:#fff3c4; color:#8a5a00; border-color:#f4d27a; }
+    .bed-tag.normal { background:#eef3ff; color:#2b4a7d; border-color:#d3def6; }
     .status-options { display:flex; align-items:center; flex-wrap:wrap; gap:10px; }
     .status-option { display:inline-flex; align-items:center; gap:8px; border-radius:999px; padding:8px 12px; background:#fff; border:1px solid var(--line); font-size:14px; font-weight:600; color:var(--text); }
     .status-option.booked { color:var(--danger); }
@@ -97,7 +100,7 @@
           <div class="bed-list" data-bed-list="icu"></div>
         </article>
         <article class="ward-card normal">
-          <div class="ward-header"><div class="ward-icon"><i class="fa-solid fa-bed-pulse"></i></div><div><h2>Normal</h2><p>General ward room and bed allocation.</p></div></div>
+          <div class="ward-header"><div class="ward-icon"><i class="fa-solid fa-bed-pulse"></i></div><div><h2>General</h2><p>General ward room and bed allocation.</p></div></div>
           <div class="bed-list" data-bed-list="normal"></div>
         </article>
       </section>
@@ -109,6 +112,7 @@
     const statusBanner = document.getElementById("statusBanner");
     const statusFilter = document.getElementById("statusFilter");
     let allBeds = [];
+    let bedsChannel = null;
 
     function setStatus(message, tone) {
       statusBanner.textContent = message;
@@ -147,7 +151,7 @@
       rows.forEach((row) => bedList.appendChild(row));
     }
 
-    function buildBedRow(ward, roomNumber, bedNumber, status, id) {
+    function buildBedRow(ward, roomNumber, bedNumber, status, id, tagLabel, tagClass) {
       const safeWard = ward.toLowerCase();
       const safeRoom = roomNumber.trim().replace(/\s+/g, "-");
       const safeBed = bedNumber.trim().replace(/\s+/g, "-");
@@ -161,6 +165,7 @@
       row.dataset.bedNumber = bedNumber.trim();
       row.innerHTML = `
         <div class="bed-label">Room ${roomNumber} - Bed ${bedNumber}</div>
+        <span class="bed-tag ${tagClass}">${tagLabel}</span>
         <div class="status-options">
           <label class="status-option booked"><input type="radio" name="${radioName}" value="booked" ${selectedStatus === "booked" ? "checked" : ""} /><span>Booked</span></label>
           <label class="status-option available"><input type="radio" name="${radioName}" value="available" ${selectedStatus === "available" ? "checked" : ""} /><span>Available</span></label>
@@ -189,8 +194,17 @@
           bedList.innerHTML = '<div class="empty-list">No beds match this filter in this ward.</div>';
           return;
         }
-        beds.forEach((bed) => {
-          bedList.appendChild(buildBedRow(ward, bed.roomNumber, bed.bedNumber, bed.status, bed.id));
+        beds.forEach((bed, index) => {
+          const isPremium = index < 2;
+          bedList.appendChild(buildBedRow(
+            ward,
+            bed.roomNumber,
+            bed.bedNumber,
+            bed.status,
+            bed.id,
+            isPremium ? "Premium" : "Normal",
+            isPremium ? "premium" : "normal"
+          ));
         });
         sortBedList(bedList);
       });
@@ -249,7 +263,34 @@
       }
     }
 
+    function subscribeToBedUpdates() {
+      if (typeof supabase === "undefined" || !supabase.createClient) {
+        return;
+      }
+      const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      if (bedsChannel) {
+        client.removeChannel(bedsChannel);
+      }
+      bedsChannel = client
+        .channel("hospital-beds-live")
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "hospital_beds" },
+          async () => {
+            try {
+              allBeds = await loadHospitalBeds();
+              refreshVisibleBeds();
+              setStatus("Live bed status updated.", "success");
+            } catch (_error) {
+            }
+          }
+        )
+        .subscribe();
+    }
+
     initBeds();
+    subscribeToBedUpdates();
+    window.setInterval(initBeds, 15000);
   </script>
 </body>
 </html>

@@ -3,165 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bed Availability - HealthSphere</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <title>Redirecting - HealthSphere</title>
+  <meta http-equiv="refresh" content="0; url=city_hospital.html" />
   <link rel="stylesheet" href="style.css" />
-  <style>
-  </style>
 </head>
 <body>
   <main class="single-wrap">
     <article class="phone hs-home">
       <div class="body">
         <div class="hs-layout">
-          <nav class="hs-sidebar" aria-label="Home sections">
-            <a class="hs-side-link" href="patient_home.html">
-              <span><i class="fa-solid fa-house"></i></span>
-              <small>Home</small>
-            </a>
-            <a class="hs-side-link" href="ai.html">
-              <span><i class="fa-solid fa-robot"></i></span>
-              <small>AI Chatbot</small>
-            </a>
-            <a class="hs-side-link" href="doctors.html">
-              <span><i class="fa-solid fa-user-doctor"></i></span>
-              <small>Find Doctors</small>
-            </a>
-            <a class="hs-side-link active" href="bed_availability.html">
-              <span><i class="fa-solid fa-bed"></i></span>
-              <small>Bed Availability</small>
-            </a>
-            <a class="hs-side-link" href="appointments.html">
-              <span><i class="fa-solid fa-calendar-check"></i></span>
-              <small>My Appointments</small>
-            </a>
-            <a class="hs-side-link" href="emergency.html">
-              <span><i class="fa-solid fa-truck-medical"></i></span>
-              <small>Emergency</small>
-            </a>
-            <a class="hs-side-link" href="prescriptions.html">
-              <span><i class="fa-solid fa-prescription-bottle-medical"></i></span>
-              <small>Prescriptions</small>
-            </a>
-            <a class="hs-side-link" href="form.html">
-              <span><i class="fa-solid fa-clipboard-list"></i></span>
-              <small>Form</small>
-            </a>
-            <a class="hs-side-link" href="profile.html">
-              <span><i class="fa-regular fa-user"></i></span>
-              <small>Profile</small>
-            </a>
-          </nav>
-
-          <section class="hs-main">
-            <div class="hs-brand-row">
-              <div class="hs-brand-logo"><i class="fa-solid fa-heart-pulse"></i></div>
-              <div class="hs-brand-name">HealthSphere</div>
-            </div>
-            <header class="hs-greet-row">
-              <div>
-                <p class="hs-hello">Section</p>
-                <h2 class="hs-name">Bed Availability</h2>
-              </div>
-            </header>
-            <section class="hs-location-card">
-              <div class="hs-location-row">
-                <div class="hs-location-icon"><i class="fa-solid fa-bed"></i></div>
-                <div>
-                  <h4>Hospital Beds</h4>
-                  <p id="bedStatusText">Showing currently available hospital information.</p>
-                </div>
-              </div>
-            </section>
-
-            <section class="hs-hospital-grid" aria-label="Hospital list">
-              <a class="hs-hospital-card is-clickable" href="city_hospital.html">
-                <div class="hs-hospital-head">
-                  <div class="hs-hospital-icon"><i class="fa-solid fa-hospital"></i></div>
-                  <div>
-                    <h3>City Hospital</h3>
-                    <p>M.G. Road, Bengaluru</p>
-                  </div>
-                </div>
-                <span class="hs-hospital-action">Open details</span>
-              </a>
-
-              <div class="hs-hospital-card is-hoverable" tabindex="0">
-                <div class="hs-hospital-head">
-                  <div class="hs-hospital-icon"><i class="fa-solid fa-hospital"></i></div>
-                  <div>
-                    <h3>Sunrise Care Hospital</h3>
-                    <p>Anna Nagar, Chennai</p>
-                  </div>
-                </div>
-                <span class="hs-hospital-action">Open details</span>
-              </div>
-
-              <div class="hs-hospital-card is-hoverable" tabindex="0">
-                <div class="hs-hospital-head">
-                  <div class="hs-hospital-icon"><i class="fa-solid fa-hospital"></i></div>
-                  <div>
-                    <h3>Lifeline Multispeciality Hospital</h3>
-                    <p>Hitech City, Hyderabad</p>
-                  </div>
-                </div>
-                <span class="hs-hospital-action">Open details</span>
-              </div>
-            </section>
+          <section class="hs-main" style="padding: 24px;">
+            <h2 class="hs-name">Redirecting...</h2>
+            <p>If you are not redirected, open City Hospital directly:</p>
+            <a class="btn btn-primary" href="city_hospital.html">Open City Hospital</a>
           </section>
         </div>
       </div>
     </article>
   </main>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
-    const bedStatusText = document.getElementById("bedStatusText");
-
-    function getSupabaseClient() {
-      if (typeof supabase === "undefined" || !supabase.createClient) {
-        return null;
-      }
-      return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
-
-    async function hydrateBedStatusText() {
-      if (!bedStatusText) {
-        return;
-      }
-
-      const client = getSupabaseClient();
-      if (!client) {
-        bedStatusText.textContent = "Showing currently available hospital information.";
-        return;
-      }
-
-      const userResult = await client.auth.getUser();
-      if (userResult.error || !userResult.data || !userResult.data.user) {
-        bedStatusText.textContent = "Showing currently available hospital information.";
-        return;
-      }
-
-      const patientEmail = String(userResult.data.user.email || "").trim().toLowerCase();
-      const prescriptionResult = await client
-        .from("prescriptions")
-        .select("doctor_name, bed_required")
-        .ilike("patient_email", patientEmail)
-        .eq("bed_required", true)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      if (prescriptionResult.error || !prescriptionResult.data) {
-        bedStatusText.textContent = "Showing currently available hospital information. Booking is enabled only for patients with a doctor recommendation.";
-        return;
-      }
-
-      bedStatusText.textContent = (prescriptionResult.data.doctor_name || "Your doctor") + " recommended advance bed booking. Open a hospital to request an available bed.";
-    }
-
-    hydrateBedStatusText();
+    window.location.replace("city_hospital.html");
   </script>
 </body>
 </html>

@@ -46,6 +46,9 @@
     .status.success { color:var(--success); }
     .meta { margin-top:8px; font-size:12px; color:var(--muted); }
     .attachment-link { display:inline-flex; width:max-content; align-items:center; gap:8px; text-decoration:none; color:var(--blue); background:#eef4ff; border:1px solid #cfe0f7; border-radius:14px; padding:10px 14px; font-weight:700; }
+    .prescription-actions { display:flex; gap:10px; flex-wrap:wrap; }
+    .delete-btn { border:0; border-radius:14px; padding:10px 14px; font-weight:700; cursor:pointer; color:#fff; background:linear-gradient(135deg, #c53b3b, #e35d5d); }
+    .delete-btn:disabled { opacity:.7; cursor:wait; }
     .choice-row { display:flex; gap:12px; flex-wrap:wrap; }
     .choice-chip { display:inline-flex; align-items:center; gap:8px; padding:12px 14px; border:1px solid var(--line); border-radius:16px; background:#fff; color:var(--text); font-weight:600; }
     .choice-chip input { accent-color:var(--blue); }
@@ -236,7 +239,10 @@
                   <p>${prescription.bed_required ? "Yes" : "No"}</p>
                 </div>
               </div>
-              ${attachmentLink}
+              <div class="prescription-actions">
+                ${attachmentLink}
+                <button class="delete-btn" type="button" data-delete-prescription="${prescription.id}">Delete</button>
+              </div>
             </article>
           `;
         }).join("");
@@ -296,6 +302,41 @@
         }
 
         await refreshPrescriptions();
+
+        document.getElementById("prescriptionList").addEventListener("click", async function (event) {
+          const deleteBtn = event.target.closest("[data-delete-prescription]");
+          if (!deleteBtn) {
+            return;
+          }
+          const id = deleteBtn.getAttribute("data-delete-prescription");
+          if (!id) {
+            return;
+          }
+          const confirmed = window.confirm("Delete this prescription? This cannot be undone.");
+          if (!confirmed) {
+            return;
+          }
+          deleteBtn.disabled = true;
+          setStatus("", "");
+          try {
+            const result = await client
+              .from("prescriptions")
+              .delete()
+              .eq("id", id);
+
+            if (result.error) {
+              throw result.error;
+            }
+
+            setStatus("Prescription deleted successfully.", "success");
+            await refreshPrescriptions();
+          } catch (error) {
+            console.error("Prescription delete failed:", error);
+            setStatus(error.message || "Failed to delete prescription.", "error");
+          } finally {
+            deleteBtn.disabled = false;
+          }
+        });
 
         formEl.addEventListener("submit", async function (event) {
           event.preventDefault();
