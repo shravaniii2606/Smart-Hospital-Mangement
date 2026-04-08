@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bed Billing - HealthSphere</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .billing-grid { display:grid; gap:16px; }
+    .billing-card { border:1px solid #dce6f2; border-radius:20px; background:#fff; padding:18px; }
+    .billing-row { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .billing-title { font-size:18px; font-weight:700; color:#17233d; margin-bottom:8px; }
+    .billing-sub { color:#5d6f8f; font-size:14px; }
+    .billing-pill { display:inline-flex; align-items:center; gap:8px; padding:6px 12px; border-radius:999px; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+    .billing-pill.premium { background:#fff3c4; color:#8a5a00; border:1px solid #f4d27a; }
+    .billing-pill.normal { background:#eef3ff; color:#2b4a7d; border:1px solid #d3def6; }
+    .billing-list { display:grid; gap:8px; margin-top:10px; }
+    .billing-line { display:flex; align-items:center; justify-content:space-between; gap:10px; color:#17233d; font-size:14px; }
+    .billing-total { font-size:18px; font-weight:800; }
+    .billing-muted { color:#6a7fa3; }
+    .billing-error { color:#b3261e; font-weight:600; }
+  </style>
+</head>
+<body>
+  <main class="single-wrap">
+    <article class="phone hs-home">
+      <div class="body">
+        <div class="hs-layout">
+          <nav class="hs-sidebar" aria-label="Home sections">
+            <a class="hs-side-link" href="patient_home.html">
+              <span><i class="fa-solid fa-house"></i></span>
+              <small>Home</small>
+            </a>
+            <a class="hs-side-link" href="ai.html">
+              <span><i class="fa-solid fa-robot"></i></span>
+              <small>AI Chatbot</small>
+            </a>
+            <a class="hs-side-link" href="doctors.html">
+              <span><i class="fa-solid fa-user-doctor"></i></span>
+              <small>Find Doctors</small>
+            </a>
+            <a class="hs-side-link active" href="bed_availability.html">
+              <span><i class="fa-solid fa-bed"></i></span>
+              <small>Bed Availability</small>
+            </a>
+            <a class="hs-side-link" href="appointments.html">
+              <span><i class="fa-solid fa-calendar-check"></i></span>
+              <small>My Appointments</small>
+            </a>
+            <a class="hs-side-link" href="emergency.html">
+              <span><i class="fa-solid fa-truck-medical"></i></span>
+              <small>Emergency</small>
+            </a>
+            <a class="hs-side-link" href="prescriptions.html">
+              <span><i class="fa-solid fa-prescription-bottle-medical"></i></span>
+              <small>Prescriptions</small>
+            </a>
+            <a class="hs-side-link" href="form.html">
+              <span><i class="fa-solid fa-clipboard-list"></i></span>
+              <small>Form</small>
+            </a>
+            <a class="hs-side-link" href="profile.html">
+              <span><i class="fa-regular fa-user"></i></span>
+              <small>Profile</small>
+            </a>
+          </nav>
+
+          <section class="hs-main">
+            <div class="hs-brand-row">
+              <div class="hs-brand-logo"><i class="fa-solid fa-heart-pulse"></i></div>
+              <div class="hs-brand-name">HealthSphere</div>
+            </div>
+
+            <header class="hs-greet-row">
+              <div>
+                <p class="hs-hello">Billing</p>
+                <h2 class="hs-name">Bed Billing</h2>
+              </div>
+            </header>
+
+            <section class="hs-location-card billing-grid">
+              <div class="billing-card">
+                <div class="billing-row">
+                  <div>
+                    <div class="billing-title">Patient Details</div>
+                    <div class="billing-sub" id="patientName">Loading...</div>
+                    <div class="billing-sub" id="patientEmail"></div>
+                    <div class="billing-sub" id="patientPhone"></div>
+                  </div>
+                  <span id="patientStatus" class="billing-sub"></span>
+                </div>
+                <p id="patientError" class="billing-error" hidden></p>
+              </div>
+
+              <div class="billing-card">
+                <div class="billing-title">Bed Details</div>
+                <div class="billing-sub" id="bedMeta">Loading selected bed...</div>
+                <div style="margin-top:10px;">
+                  <span id="bedTypePill" class="billing-pill">Type</span>
+                </div>
+              </div>
+
+              <div class="billing-card">
+                <div class="billing-title">Pricing Summary</div>
+                <div class="billing-list">
+                  <div class="billing-line">
+                    <span>Base Rate (per day)</span>
+                    <span id="baseRate">-</span>
+                  </div>
+                  <div class="billing-line">
+                    <span class="billing-muted">Service Charge</span>
+                    <span id="serviceCharge">-</span>
+                  </div>
+                  <div class="billing-line">
+                    <span>Days</span>
+                    <span>
+                      <input id="stayDays" class="input" type="number" min="1" value="1" style="max-width:120px;" />
+                    </span>
+                  </div>
+                  <div class="billing-line billing-total">
+                    <span>Total</span>
+                    <span id="totalRate">-</span>
+                  </div>
+                </div>
+                <p class="billing-sub" style="margin-top:10px;">Final billing will reflect exact stay duration at the hospital.</p>
+                <div class="billing-row" style="margin-top:16px;">
+                  <button id="confirmBookingBtn" class="btn btn-primary" type="button">Confirm Booking</button>
+                  <span id="bookingStatus" class="billing-sub"></span>
+                </div>
+                <div class="billing-row" style="margin-top:10px;"></div>
+              </div>
+            </section>
+
+            <a class="btn" href="city_hospital.html">Back to City Hospital</a>
+          </section>
+        </div>
+      </div>
+    </article>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="../hospital_backend/hospital_beds.js"></script>
+  <script>
+    (function () {
+      const PREMIUM_RATE = 6500;
+      const NORMAL_RATE = 3500;
+      const SERVICE_CHARGE = 250;
+
+      const patientNameEl = document.getElementById("patientName");
+      const patientEmailEl = document.getElementById("patientEmail");
+      const patientPhoneEl = document.getElementById("patientPhone");
+      const patientErrorEl = document.getElementById("patientError");
+      const bedMetaEl = document.getElementById("bedMeta");
+      const bedTypePill = document.getElementById("bedTypePill");
+      const baseRateEl = document.getElementById("baseRate");
+      const serviceChargeEl = document.getElementById("serviceCharge");
+      const totalRateEl = document.getElementById("totalRate");
+      const patientStatusEl = document.getElementById("patientStatus");
+      const confirmBtn = document.getElementById("confirmBookingBtn");
+      const bookingStatusEl = document.getElementById("bookingStatus");
+      const stayDaysInput = document.getElementById("stayDays");
+      let currentPatient = null;
+      let selectedBed = null;
+      let pricingType = "normal";
+
+      function getSupabaseClient() {
+        if (typeof supabase === "undefined" || !supabase.createClient) {
+          return null;
+        }
+        return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+
+      function formatCurrency(value) {
+        if (value === null || value === undefined) return "-";
+        return "INR " + Number(value).toLocaleString("en-IN");
+      }
+
+      function getStayDays() {
+        const days = Number(stayDaysInput ? stayDaysInput.value : 1);
+        if (Number.isNaN(days) || days < 1) {
+          return 1;
+        }
+        return Math.floor(days);
+      }
+
+      function showPatientError(message) {
+        if (!patientErrorEl) return;
+        patientErrorEl.textContent = message || "";
+        patientErrorEl.hidden = !message;
+      }
+
+      function loadSelectedBed() {
+        let bed = null;
+        try {
+          const stored = sessionStorage.getItem("selectedBedForBilling");
+          if (stored) {
+            bed = JSON.parse(stored);
+          }
+        } catch (_error) {
+        }
+
+        if (!bed) {
+          bedMetaEl.textContent = "No bed selected. Please choose a bed again.";
+          bedTypePill.textContent = "Unknown";
+          bedTypePill.className = "billing-pill normal";
+          return { type: "normal", bed: null };
+        }
+
+        const wardLabel = bed.ward === "icu" ? "ICU" : "General";
+        bedMetaEl.textContent = `City Hospital · ${wardLabel} ward · Room ${bed.roomNumber} - Bed ${bed.bedNumber}`;
+        const type = bed.type === "premium" ? "premium" : "normal";
+        bedTypePill.textContent = type === "premium" ? "Premium" : "Normal";
+        bedTypePill.className = "billing-pill " + type;
+        return { type, bed };
+      }
+
+      function applyPricing(type) {
+        const base = type === "premium" ? PREMIUM_RATE : NORMAL_RATE;
+        const days = getStayDays();
+        baseRateEl.textContent = formatCurrency(base);
+        serviceChargeEl.textContent = formatCurrency(SERVICE_CHARGE);
+        totalRateEl.textContent = formatCurrency((base + SERVICE_CHARGE) * days);
+      }
+
+      async function loadPatient() {
+        const client = getSupabaseClient();
+        if (!client) {
+          showPatientError("Supabase client not loaded. Check the script tag.");
+          return;
+        }
+
+        const userResult = await client.auth.getUser();
+        if (userResult.error || !userResult.data || !userResult.data.user) {
+          showPatientError("Please log in to view your billing details.");
+          return;
+        }
+
+        const user = userResult.data.user;
+        patientStatusEl.textContent = "Verified";
+
+        const profileResult = await client
+          .from("patient_profile")
+          .select("name,email,phone")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (profileResult.error) {
+          showPatientError(profileResult.error.message || "Unable to load patient profile.");
+          return;
+        }
+
+        const profile = profileResult.data || {};
+        patientNameEl.textContent = profile.name || user.email || "Patient";
+        patientEmailEl.textContent = profile.email || user.email || "";
+        patientPhoneEl.textContent = profile.phone || "";
+        currentPatient = {
+          userId: user.id,
+          name: profile.name || "Patient",
+          email: profile.email || user.email || "",
+          phone: profile.phone || ""
+        };
+      }
+
+      function setBookingStatus(message, isError) {
+        if (!bookingStatusEl) return;
+        bookingStatusEl.textContent = message || "";
+        bookingStatusEl.className = "billing-sub" + (isError ? " billing-error" : "");
+      }
+
+      function buildInvoiceData() {
+        const days = getStayDays();
+        const base = pricingType === "premium" ? PREMIUM_RATE : NORMAL_RATE;
+        const total = (base + SERVICE_CHARGE) * days;
+        return {
+          days: days,
+          base: base,
+          service: SERVICE_CHARGE,
+          total: total
+        };
+      }
+
+      function openInvoicePreview() {
+        const invoice = buildInvoiceData();
+        const bedInfo = selectedBed
+          ? "Room " + selectedBed.roomNumber + " - Bed " + selectedBed.bedNumber
+          : "Bed not selected";
+        const wardLabel = selectedBed && selectedBed.ward === "icu" ? "ICU" : "General";
+        const typeLabel = pricingType === "premium" ? "Premium" : "Normal";
+        const patientName = currentPatient ? currentPatient.name : "Patient";
+        const patientEmail = currentPatient ? currentPatient.email : "-";
+        const html = `
+          <html>
+            <head><title>Bed Invoice</title></head>
+            <body style="font-family: Arial, sans-serif; padding: 24px;">
+              <h2>HealthSphere - Bed Invoice</h2>
+              <p><strong>Patient:</strong> ${patientName} (${patientEmail})</p>
+              <p><strong>Hospital:</strong> City Hospital</p>
+              <p><strong>Bed:</strong> ${bedInfo} (${wardLabel} ward, ${typeLabel})</p>
+              <hr />
+              <p><strong>Days:</strong> ${invoice.days}</p>
+              <p><strong>Base Rate:</strong> INR ${invoice.base.toLocaleString("en-IN")}</p>
+              <p><strong>Service Charge:</strong> INR ${invoice.service.toLocaleString("en-IN")}</p>
+              <p><strong>Total:</strong> INR ${invoice.total.toLocaleString("en-IN")}</p>
+            </body>
+          </html>
+        `;
+        const preview = window.open("", "_blank");
+        if (preview) {
+          preview.document.write(html);
+          preview.document.close();
+        }
+      }
+
+      if (stayDaysInput) {
+        stayDaysInput.addEventListener("input", function () {
+          applyPricing(pricingType);
+        });
+      }
+
+
+      if (confirmBtn) {
+        confirmBtn.addEventListener("click", async function () {
+          if (!selectedBed || !selectedBed.id) {
+            setBookingStatus("Please select a bed first.", true);
+            return;
+          }
+          if (!currentPatient) {
+            setBookingStatus("Please log in to confirm booking.", true);
+            return;
+          }
+          if (typeof createBedBookingRequest !== "function" || typeof approveBedBookingRequest !== "function") {
+            setBookingStatus("Bed booking service is unavailable right now.", true);
+            return;
+          }
+
+          confirmBtn.disabled = true;
+          setBookingStatus("Booking your bed...", false);
+          try {
+            const request = await createBedBookingRequest({
+              bedId: selectedBed.id,
+              patientUserId: currentPatient.userId,
+              patientName: currentPatient.name || "Patient",
+              patientEmail: currentPatient.email
+            });
+            await approveBedBookingRequest(request.id);
+            setBookingStatus("Bed booked successfully.", false);
+            confirmBtn.textContent = "Confirm Booking";
+            confirmBtn.disabled = false;
+
+            try {
+              const invoice = buildInvoiceData();
+              const payload = {
+                createdAt: new Date().toISOString(),
+                patient: currentPatient,
+                bed: selectedBed,
+                type: pricingType,
+                days: invoice.days,
+                base: invoice.base,
+                service: invoice.service,
+                total: invoice.total
+              };
+              localStorage.setItem("latestBedInvoice", JSON.stringify(payload));
+            } catch (_error) {
+            }
+          } catch (error) {
+            console.error("Error confirming bed booking:", error);
+            confirmBtn.disabled = false;
+            setBookingStatus(error.message || "Unable to confirm booking right now.", true);
+          }
+        });
+      }
+
+      const selection = loadSelectedBed();
+      selectedBed = selection.bed || null;
+      pricingType = selection.type || "normal";
+      applyPricing(pricingType);
+      loadPatient();
+    })();
+  </script>
+</body>
+</html>
+
+
