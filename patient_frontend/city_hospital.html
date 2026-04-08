@@ -18,6 +18,11 @@
     .hs-bed-meta h4 { font-size:16px; color:#17233d; margin-bottom:4px; }
     .hs-bed-meta p { color:#5d6f8f; font-size:14px; }
     .hs-bed-empty { margin-top:16px; padding:18px; border-radius:18px; border:1px dashed #c7d7e7; background:#f8fbff; color:#5d6f8f; text-align:center; }
+    .hs-bed-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .hs-bed-note { margin-top:14px; padding:14px 16px; border-radius:16px; background:#f4f8fd; border:1px solid #dce6f2; color:#51698f; }
+    .hs-bed-note.is-success { background:#edf9f2; border-color:#cde8d6; color:#1f8c4b; }
+    .hs-book-bed-btn { border:none; border-radius:999px; padding:10px 16px; font:inherit; font-weight:700; color:#fff; background:linear-gradient(135deg, #0f56b9, #17a2b8); cursor:pointer; }
+    .hs-book-bed-btn:disabled { opacity:.7; cursor:wait; }
   </style>
 </head>
 <body>
@@ -93,6 +98,7 @@
                   <option value="normal">Normal</option>
                 </select>
               </div>
+              <div id="bedBookingNote" class="hs-bed-note">Checking whether your doctor has recommended advance bed booking...</div>
             </section>
 
             <section class="hs-location-card">
@@ -120,7 +126,20 @@
     const bedList = document.getElementById("bedList");
     const bedEmpty = document.getElementById("bedEmpty");
     const bedStatusText = document.getElementById("bedStatusText");
+    const bedBookingNote = document.getElementById("bedBookingNote");
+    const SUPABASE_URL = "https://nfmzosvedtieicnfbmlh.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5mbXpvc3ZlZHRpZWljbmZibWxoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzk1MDgsImV4cCI6MjA5MDYxNTUwOH0.UWGk4L8AQu-5NfpknMKizvFmAcyX6QgUmqOGSr1G6Wc";
     let hospitalBeds = [];
+    let currentPatient = null;
+    let canBookBeds = false;
+    let patientRequests = [];
+
+    function getSupabaseClient() {
+      if (typeof supabase === "undefined" || !supabase.createClient) {
+        return null;
+      }
+      return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
 
     function formatWardLabel(ward) {
       const normalized = String(ward || "").toLowerCase();
@@ -131,6 +150,43 @@
         return "Normal";
       }
       return normalized ? normalized[0].toUpperCase() + normalized.slice(1) : "Normal";
+    }
+
+    function setBookingNote(message, isSuccess) {
+      if (!bedBookingNote) {
+        return;
+      }
+      bedBookingNote.textContent = message;
+      bedBookingNote.className = "hs-bed-note" + (isSuccess ? " is-success" : "");
+    }
+
+    function findRequestForBed(bedId) {
+      return patientRequests.find((request) => request.bedId === bedId && (request.status === "pending" || request.status === "approved")) || null;
+    }
+
+    async function findLatestBedRecommendation(client, emails) {
+      const uniqueEmails = Array.from(new Set((emails || [])
+        .map((email) => String(email || "").trim().toLowerCase())
+        .filter(Boolean)));
+
+      if (!uniqueEmails.length) {
+        return null;
+      }
+
+      const result = await client
+        .from("prescriptions")
+        .select("bed_required, doctor_name, patient_email")
+        .in("patient_email", uniqueEmails)
+        .eq("bed_required", true)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (result.error) {
+        return null;
+      }
+
+      return result.data || null;
     }
 
     function renderBeds() {
@@ -150,16 +206,93 @@
       bedStatusText.textContent = `ICU: ${icuCount} | Normal: ${normalCount}`;
 
       bedList.innerHTML = filteredBeds.map((bed) => {
+        const existingRequest = findRequestForBed(bed.id);
+        const actionHtml = canBookBeds
+          ? `<div class="hs-bed-actions">${
+              existingRequest
+                ? `<span class="hs-bed-status ${existingRequest.status === "approved" ? "available" : "booked"}">${existingRequest.status === "approved" ? "Booked for you" : "Request pending"}</span>`
+                : `<button class="hs-book-bed-btn" type="button" data-book-bed="${bed.id}">Book Bed</button>`
+            }</div>`
+          : "";
+
         return `
           <article class="hs-bed-card">
             <div class="hs-bed-meta">
               <h4>Room ${bed.roomNumber} - Bed ${bed.bedNumber}</h4>
               <p>${formatWardLabel(bed.ward)} ward</p>
             </div>
-            <div class="hs-bed-status available">Available</div>
+            <div class="hs-bed-actions">
+              <div class="hs-bed-status available">Available</div>
+              ${actionHtml}
+            </div>
           </article>
         `;
       }).join("");
+    }
+
+    async function loadBookingEligibility() {
+      try {
+        const client = getSupabaseClient();
+        if (!client) {
+          canBookBeds = false;
+          currentPatient = null;
+          setBookingNote("Doctor-recommended booking status is unavailable right now.", false);
+          return;
+        }
+
+        const userResult = await client.auth.getUser();
+        if (userResult.error || !userResult.data || !userResult.data.user) {
+          canBookBeds = false;
+          currentPatient = null;
+          setBookingNote("Please log in to check bed booking eligibility.", false);
+          return;
+        }
+
+        const user = userResult.data.user;
+        currentPatient = {
+          userId: user.id,
+          email: String(user.email || "").trim().toLowerCase(),
+          name: String((user.user_metadata && user.user_metadata.name) || "").trim()
+        };
+
+        const profileResult = await client
+          .from("patient_profile")
+          .select("name,email")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (profileResult && profileResult.data) {
+          currentPatient.name = String(profileResult.data.name || currentPatient.name || "Patient").trim();
+        }
+
+        const prescriptionResult = await findLatestBedRecommendation(client, [
+          String(user.email || "").trim().toLowerCase(),
+          profileResult && profileResult.data ? profileResult.data.email : ""
+        ]);
+
+        if (!prescriptionResult) {
+          canBookBeds = false;
+          patientRequests = [];
+          setBookingNote("Beds are visible to everyone. Booking is enabled only after a doctor recommendation.", false);
+          return;
+        }
+
+        canBookBeds = true;
+        currentPatient.email = String(prescriptionResult.patient_email || currentPatient.email || "").trim().toLowerCase();
+        setBookingNote((prescriptionResult.doctor_name || "Your doctor") + " has recommended you to book your bed in advance.", true);
+
+        try {
+          patientRequests = await loadPatientBedBookingRequests(currentPatient.userId);
+        } catch (_error) {
+          patientRequests = [];
+        }
+      } catch (error) {
+        console.error("Error checking booking eligibility:", error);
+        canBookBeds = false;
+        currentPatient = null;
+        patientRequests = [];
+        setBookingNote("Beds are visible to everyone. Booking is enabled only after a doctor recommendation.", false);
+      }
     }
 
     async function loadBeds() {
@@ -177,8 +310,41 @@
     if (wardFilter) {
       wardFilter.addEventListener("change", renderBeds);
     }
-    loadBeds();
-    window.setInterval(loadBeds, 15000);
+
+    bedList.addEventListener("click", async function (event) {
+      const button = event.target.closest("[data-book-bed]");
+      if (!button || !canBookBeds || !currentPatient) {
+        return;
+      }
+
+      button.disabled = true;
+      try {
+        await createBedBookingRequest({
+          bedId: button.getAttribute("data-book-bed"),
+          patientUserId: currentPatient.userId,
+          patientName: currentPatient.name || "Patient",
+          patientEmail: currentPatient.email
+        });
+        patientRequests = await loadPatientBedBookingRequests(currentPatient.userId);
+        setBookingNote("Your bed booking request has been sent to the hospital.", true);
+        renderBeds();
+      } catch (error) {
+        console.error("Error creating bed booking request:", error);
+        button.disabled = false;
+        setBookingNote(error.message || "Unable to book this bed right now.", false);
+      }
+    });
+
+    async function initPage() {
+      try {
+        await loadBookingEligibility();
+      } catch (_error) {
+      }
+      await loadBeds();
+      window.setInterval(loadBeds, 15000);
+    }
+
+    initPage();
   </script>
 </body>
 </html>

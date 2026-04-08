@@ -46,6 +46,9 @@
     .status.success { color:var(--success); }
     .meta { margin-top:8px; font-size:12px; color:var(--muted); }
     .attachment-link { display:inline-flex; width:max-content; align-items:center; gap:8px; text-decoration:none; color:var(--blue); background:#eef4ff; border:1px solid #cfe0f7; border-radius:14px; padding:10px 14px; font-weight:700; }
+    .choice-row { display:flex; gap:12px; flex-wrap:wrap; }
+    .choice-chip { display:inline-flex; align-items:center; gap:8px; padding:12px 14px; border:1px solid var(--line); border-radius:16px; background:#fff; color:var(--text); font-weight:600; }
+    .choice-chip input { accent-color:var(--blue); }
     .back-link { display:inline-flex; margin-top:18px; text-decoration:none; color:var(--blue); background:#eef4ff; border:1px solid #cfe0f7; border-radius:16px; padding:14px 18px; font-weight:700; gap:10px; align-items:center; }
     @media (max-width:980px) { .dashboard { display:grid; } .sidebar-shell { width:100%; } .sidebar { grid-template-columns:repeat(3, minmax(0, 1fr)); } .page-grid { grid-template-columns:1fr; } }
     @media (max-width:720px) { .prescription-grid { grid-template-columns:1fr; } }
@@ -103,6 +106,20 @@
               <input id="prescriptionFile" class="input" type="file" accept=".png,.jpg,.jpeg,.pdf,.webp,.gif" />
               <p class="meta">Optional: upload prescription image or PDF. Max 5 MB.</p>
             </div>
+            <div class="field">
+              <label>Bed Required</label>
+              <div class="choice-row" role="group" aria-label="Bed requirement recommendation">
+                <label class="choice-chip" for="bedRequiredYes">
+                  <input id="bedRequiredYes" type="checkbox" />
+                  <span>Yes</span>
+                </label>
+                <label class="choice-chip" for="bedRequiredNo">
+                  <input id="bedRequiredNo" type="checkbox" checked />
+                  <span>No</span>
+                </label>
+              </div>
+              <p class="meta">If yes, the patient will get a home page notification with a bed booking shortcut.</p>
+            </div>
             <p id="prescriptionStatus" class="status" aria-live="polite"></p>
             <button id="prescriptionSubmit" class="upload-button" type="submit">Add Prescription</button>
           </form>
@@ -154,6 +171,32 @@
         });
       }
 
+      function bindExclusiveCheckboxes(yesEl, noEl) {
+        if (!yesEl || !noEl) {
+          return;
+        }
+
+        yesEl.addEventListener("change", function () {
+          if (yesEl.checked) {
+            noEl.checked = false;
+            return;
+          }
+          if (!noEl.checked) {
+            noEl.checked = true;
+          }
+        });
+
+        noEl.addEventListener("change", function () {
+          if (noEl.checked) {
+            yesEl.checked = false;
+            return;
+          }
+          if (!yesEl.checked) {
+            yesEl.checked = true;
+          }
+        });
+      }
+
       function renderPrescriptions(prescriptions) {
         const listEl = document.getElementById("prescriptionList");
         const emptyEl = document.getElementById("prescriptionEmpty");
@@ -187,6 +230,10 @@
                 <div class="prescription-box">
                   <span>Medicines</span>
                   <p>${prescription.medicines || "-"}</p>
+                </div>
+                <div class="prescription-box">
+                  <span>Bed Required</span>
+                  <p>${prescription.bed_required ? "Yes" : "No"}</p>
                 </div>
               </div>
               ${attachmentLink}
@@ -227,6 +274,8 @@
         const patient = patientId ? await getPatientById(patientId) : null;
         const formEl = document.getElementById("prescriptionForm");
         const submitEl = document.getElementById("prescriptionSubmit");
+        const bedRequiredYesEl = document.getElementById("bedRequiredYes");
+        const bedRequiredNoEl = document.getElementById("bedRequiredNo");
 
         if (!patient) {
           document.getElementById("pageTitle").textContent = "Patient Not Found";
@@ -239,6 +288,7 @@
         document.getElementById("pageTitle").textContent = patient.name + " Prescriptions";
         document.getElementById("pageSubtitle").textContent = "Current and historical prescriptions for this patient.";
         document.getElementById("backLink").href = "hospital_patient_details.html?id=" + patient.id;
+        bindExclusiveCheckboxes(bedRequiredYesEl, bedRequiredNoEl);
 
         async function refreshPrescriptions() {
           const prescriptions = await fetchPrescriptions(client, patient);
@@ -255,6 +305,7 @@
           const medicines = document.getElementById("prescriptionMedicines").value.trim();
           const notes = document.getElementById("prescriptionNotes").value.trim();
           const file = document.getElementById("prescriptionFile").files[0];
+          const bedRequired = !!(bedRequiredYesEl && bedRequiredYesEl.checked);
           const patientEmail = normalizeEmail(patient.email);
 
           if (!title || !doctorName || !medicines) {
@@ -287,6 +338,7 @@
                 doctor_name: doctorName,
                 medicines: medicines,
                 notes: notes,
+                bed_required: bedRequired,
                 file_name: file ? file.name : null,
                 file_type: file ? (file.type || null) : null,
                 file_data: fileData,
